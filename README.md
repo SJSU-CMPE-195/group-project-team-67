@@ -7,7 +7,7 @@
 | Name   | GitHub                                     | Email                      |
 | ------ | ------------------------------------------ | -------------------------- |
 | Name 1 | [@nick-mama](https://github.com/nick-mama) | nickjason.mamaoag@sjsu.edu |
-| Name 2 | [@username](https://github.com/username)   | name@sjsu.edu              |
+| Name 2 | [@vance-nguyen](https://github.com/vancednguyen)   | vance.nguyen@sjsu.edu              |
 | Name 3 | [@username](https://github.com/username)   | name@sjsu.edu              |
 | Name 4 | [@username](https://github.com/username)   | name@sjsu.edu              |
 
