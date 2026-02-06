@@ -8,7 +8,7 @@
 | ------ | ------------------------------------------ | -------------------------- |
 | Name 1 | [@nick-mama](https://github.com/nick-mama) | nickjason.mamaoag@sjsu.edu |
 | Name 2 | [@vancednguyen](https://github.com/vancednguyen)   | vance.nguyen@sjsu.edu              |
-| Name 3 | [@username](https://github.com/username)   | name@sjsu.edu              |
+| Name 3 | [@YashSat21](https://github.com/YashSat21) | yashas.satheesh@sjsu.edu |
 | Name 4 | [@username](https://github.com/username)   | name@sjsu.edu              |
 
 **Advisor:** [Advisor Name]
