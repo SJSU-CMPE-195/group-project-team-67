@@ -52,19 +52,22 @@
 
 ## Meeting Notes
 
-### [Date] - [Advisor/Team] Meeting
+### [2/3/2026] - [Team] Meeting
 
 **Attendees:**
+All Members
 
 **Discussion:**
--
+- Find and emailing advisors
 
 **Decisions:**
--
+-Emailed 4 advisors
 
 **Action Items:**
-- [ ] [Task] - [Owner] - [Due]
-- [ ] [Task] - [Owner] - [Due]
+- [X] [Emailed Jun Liu ] - [Michael Kim] - [2/3/2026]
+- [X] [Emailed Charan Bhaskar ] - [Yashas Satheesh ] - [2/3/2026]
+- [X] [Emailed Pouya Ostovari] - [Nick Mamaoag] - [2/3/2026]
+- [X] [Emailed ISHIE ESWAR] - [Vance Nguyen] - [2/3/2026]
 
 ---
 
