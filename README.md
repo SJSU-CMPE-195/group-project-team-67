@@ -1,8 +1,8 @@
-# Project Title
+# ScalpSense
 
-> One-line description of what your project does
+> Creating a male pattern baldness analyzer to detect treatment solutions from AI/ML/LLMs.
 
-## Team
+## Group 7
 
 | Name   | GitHub                                     | Email                      |
 | ------ | ------------------------------------------ | -------------------------- |
