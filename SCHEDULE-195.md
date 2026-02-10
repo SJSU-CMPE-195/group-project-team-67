@@ -71,19 +71,18 @@ All Members
 
 ---
 
-### [Date] - [Advisor/Team] Meeting
+### [2/9/2026] - [Team] Meeting
 
 **Attendees:**
-
+All memebers
 **Discussion:**
--
+-Pitch Presentation
 
 **Decisions:**
--
+-Made a project name and slides
 
 **Action Items:**
-- [ ] [Task] - [Owner] - [Due]
-- [ ] [Task] - [Owner] - [Due]
+- [X] [Slides] - [All Members] - [2/13/2026]
 
 ---
 
