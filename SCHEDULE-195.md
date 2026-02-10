@@ -31,8 +31,8 @@
 
 | Date | Duration | Format | Attendees | Summary | Action Items |
 |------|----------|--------|-----------|---------|--------------|
-| | | In-person / Remote | | | |
-| | | In-person / Remote | | | |
+| 2/3/2026 | 1 hr 20 min | In-person | Everyone | Project and advisor ideas | Email |
+| 2/9/2026 | 1 hr 15 min | Remote | Everyone | Work on slides and email professors | Pitch Presentation |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
