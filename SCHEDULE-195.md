@@ -1,7 +1,7 @@
 # Meeting Log
 
-**Project:** [Project Title]
-**Team:** [Team 67]
+**Project:** ScalpSense
+**Team:** Team 67
 **Semester:** Spring 2026
 
 > **Time Commitment:** This is a 3-unit course. You should be working on this project **at least 6 hours per week** outside of meetings.
@@ -59,6 +59,7 @@ All Members
 
 **Discussion:**
 - Find and email advisors
+- Project ideas
 
 **Decisions:**
 - Emailed 4 advisors
@@ -78,10 +79,12 @@ All Members
 
 **Discussion:**
 - Find advisor ASAP
+- Project ideas
 - Pitch Presentation
 
 **Decisions:**
-- Email another 4 professors
+- Emailed another 4 professors
+- Finalized project idea
 - Made a project name and slides
 
 **Action Items:**
