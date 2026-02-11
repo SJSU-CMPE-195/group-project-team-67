@@ -58,30 +58,37 @@
 All Members
 
 **Discussion:**
-- Find and emailing advisors
+- Find and email advisors
 
 **Decisions:**
--Emailed 4 advisors
+- Emailed 4 advisors
 
 **Action Items:**
 - [X] [Emailed Jun Liu ] - [Michael Kim] - [2/3/2026]
 - [X] [Emailed Charan Bhaskar ] - [Yashas Satheesh ] - [2/3/2026]
 - [X] [Emailed Pouya Ostovari] - [Nick Mamaoag] - [2/3/2026]
-- [X] [Emailed ISHIE ESWAR] - [Vance Nguyen] - [2/3/2026]
+- [X] [Emailed Ishie Eswar] - [Vance Nguyen] - [2/3/2026]
 
 ---
 
 ### [2/9/2026] - [Team] Meeting
 
 **Attendees:**
-All memebers
+- All members
+
 **Discussion:**
--Pitch Presentation
+- Find advisor ASAP
+- Pitch Presentation
 
 **Decisions:**
--Made a project name and slides
+- Email another 4 professors
+- Made a project name and slides
 
 **Action Items:**
+- [X] [Emailed Harshwardhan Bhangale ] - [Nick Mamaoag] - [2/9/2026]
+- [X] [Emailed Bertin Cordova Diba] - [Nick Mamaoag] - [2/9/2026]
+- [X] [Emailed Bhawandeep Singh Harsh ] - [Michael Kim ] - [2/9/2026]
+- [X] [Emailed Loc Lam] - [Vance Nguyen] - [2/9/2026]
 - [X] [Slides] - [All Members] - [2/13/2026]
 
 ---
