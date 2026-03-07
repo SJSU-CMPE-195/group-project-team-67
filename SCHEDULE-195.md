@@ -33,7 +33,7 @@
 |------|----------|--------|-----------|---------|--------------|
 | 2/3/2026 | 1 hr 20 min | In-person | Everyone | Project and advisor ideas | Email |
 | 2/9/2026 | 1 hr 15 min | Remote | Everyone | Work on slides and email professors | Pitch Presentation |
-| | | In-person / Remote | | | |
+| 3/6/2026 | 25 min | Remote | Vance, Yashas | Talked with Professor Rojas about advisors/other projects (Gradescope/MyScheduler)| Email advisor(s), discuss with other team members about project changes |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
