@@ -11,7 +11,7 @@
 | Name 3 | [@YashSat21](https://github.com/YashSat21) | yashas.satheesh@sjsu.edu |
 | Name 4 | [@michaelnathykim](https://github.com/michaelnathykim)   | michael.n.kim@sjsu.edu              |
 
-**Advisor:** [Advisor Name]
+**Advisor:** Professor Rojas
 
 ---
 
