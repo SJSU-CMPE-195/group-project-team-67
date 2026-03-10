@@ -12,7 +12,7 @@
 
 | Date | Duration | Format | Attendees | Summary | Action Items |
 |------|----------|--------|-----------|---------|--------------|
-| | | In-person / Remote | | | |
+| 3/10/26 | 40 min | Remote | Everyone | Idea of project, problem, milestones, tasks. | Start report, think of features/constraints (MVP). |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
@@ -55,7 +55,7 @@
 ### [2/3/2026] - [Team] Meeting
 
 **Attendees:**
-All Members
+- All Members
 
 **Discussion:**
 - Find and email advisors
@@ -96,19 +96,21 @@ All Members
 
 ---
 
-### [Date] - [Advisor/Team] Meeting
+### [3/10/2026] - [Advisor] Meeting
 
 **Attendees:**
+- All members
 
 **Discussion:**
--
-
-**Decisions:**
--
+- Get idea of project
+- What problem are we solving?
+- Milestones
+- Tasks
 
 **Action Items:**
-- [ ] [Task] - [Owner] - [Due]
-- [ ] [Task] - [Owner] - [Due]
+- [X] [Add Prof. Rojas to Discord] - [Yash] - [3/10/2026]
+- [ ] [Report] - [All Members] - [3/13/2026]
+- [ ] [Review and update prompt in Zoom document] - [All Members] - [3/13/2026]
 
 ---
 
