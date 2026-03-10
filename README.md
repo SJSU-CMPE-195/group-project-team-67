@@ -17,11 +17,11 @@
 
 ## Problem Statement
 
-[Departments currently rely on manual spreadsheets to plan CMPE and SE course offerings, making demand forecasting and multi-term coordination inefficient and error-prone. It’s difficult to balance prerequisites, outside course schedules, faculty preferences, and workload constraints without creating conflicts or mismatched capacity.]
+Departments currently rely on manual spreadsheets to plan CMPE and SE course offerings, making demand forecasting and multi-term coordination inefficient and error-prone. It’s difficult to balance prerequisites, outside course schedules, faculty preferences, and workload constraints without creating conflicts or mismatched capacity.
 
 ## Solution
 
-[We propose a faculty course planning tool that automatically generates multi-term schedules using prerequisite structures, demand forecasts, outside course offerings, and instructor preferences. The system enforces hard constraints, optimizes soft preferences, and produces a clear term-by-term visualization. This reduces administrative workload while creating more accurate, conflict-free course plans.]
+We propose a faculty course planning tool that automatically generates multi-term schedules using prerequisite structures, demand forecasts, outside course offerings, and instructor preferences. The system enforces hard constraints, optimizes soft preferences, and produces a clear term-by-term visualization. This reduces administrative workload while creating more accurate, conflict-free course plans.
 
 ### Key Features
 
