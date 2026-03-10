@@ -25,9 +25,11 @@ We propose a faculty course planning tool that automatically generates multi-ter
 
 ### Key Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- Data Entry/Import
+- Planner Output
+- Assignments
+- Capacity Forcast
+- Student Scheduler Integration
 
 ---
 
