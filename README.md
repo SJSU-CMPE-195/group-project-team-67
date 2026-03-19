@@ -1,6 +1,6 @@
-# ScalpSense
+# Schedulr
 
-> Creating a male pattern baldness analyzer to detect treatment solutions from AI/ML/LLMs.
+> A faculty course planning tool that automatically generates constraint-aware CMPE/SE term schedules by combining instructor preferences, prerequisite structures, outside course offerings, and demand forecasts.
 
 ## Group 7
 
@@ -9,25 +9,27 @@
 | Name 1 | [@nick-mama](https://github.com/nick-mama) | nickjason.mamaoag@sjsu.edu |
 | Name 2 | [@vancednguyen](https://github.com/vancednguyen)   | vance.nguyen@sjsu.edu              |
 | Name 3 | [@YashSat21](https://github.com/YashSat21) | yashas.satheesh@sjsu.edu |
-| Name 4 | [@username](https://github.com/username)   | name@sjsu.edu              |
+| Name 4 | [@michaelnathykim](https://github.com/michaelnathykim)   | michael.n.kim@sjsu.edu              |
 
-**Advisor:** [Advisor Name]
+**Advisor:** Professor Rojas
 
 ---
 
 ## Problem Statement
 
-[2-3 sentences describing the problem you're solving and why it matters]
+Departments currently rely on manual spreadsheets to plan CMPE and SE course offerings, making demand forecasting and multi-term coordination inefficient and error-prone. It’s difficult to balance prerequisites, outside course schedules, faculty preferences, and workload constraints without creating conflicts or mismatched capacity.
 
 ## Solution
 
-[2-3 sentences describing your solution approach]
+We propose a faculty course planning tool that automatically generates multi-term schedules using prerequisite structures, demand forecasts, outside course offerings, and instructor preferences. The system enforces hard constraints, optimizes soft preferences, and produces a clear term-by-term visualization. This reduces administrative workload while creating more accurate, conflict-free course plans.
 
 ### Key Features
 
-- Feature 1
-- Feature 2
-- Feature 3
+- Data Entry/Import
+- Planner Output
+- Assignments
+- Capacity Forcast
+- Student Scheduler Integration
 
 ---
 
