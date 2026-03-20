@@ -13,7 +13,7 @@
 | Date | Duration | Format | Attendees | Summary | Action Items |
 |------|----------|--------|-----------|---------|--------------|
 | 3/10/26 | 40 min | Remote | Everyone | Idea of project, problem, milestones, tasks. | Start report, think of features/constraints (MVP). |
-| | | In-person / Remote | | | |
+| 3/20/26 | 40 min | Remote | Vance, Yashas, Michael | Discussed updates, checkpoints, and next steps | Incorperate spreadsheet preferences, output spreadsheet incorperate system |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
 | | | In-person / Remote | | | |
@@ -114,19 +114,20 @@
 
 ---
 
-### [Date] - [Advisor/Team] Meeting
+### [3/20/2026] - [Advisor] Meeting
 
 **Attendees:**
-
+- Vance, Yashas, Michael
+  
 **Discussion:**
--
-
-**Decisions:**
--
+- Updates
+- Chekpoint
+- Next steps
 
 **Action Items:**
-- [ ] [Task] - [Owner] - [Due]
-- [ ] [Task] - [Owner] - [Due]
+- [ ] [Incorperate Spreadsheet Preferences] - [2 members] - [4/6/2026]
+- [ ] [Output changes in the spreadsheet so they can be inputted into the system] - [1 member] - [4/6/2026]
+- [ ] [Figuring out number of sections] - [1 member] - [4/6/2026]
 
 ---
 
