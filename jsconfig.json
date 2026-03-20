@@ -1,0 +1,8 @@
+{
+    "compilerOptions": {
+        "target": "ES6",
+        "checkJs": true,
+        "typeRoots": ["./node_modules/@types"]
+    },
+  //  "include": ["**/.js", "**/*.gs", "**/*.html"]
+}
