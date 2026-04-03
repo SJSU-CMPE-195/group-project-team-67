@@ -1,6 +1,6 @@
 # Meeting Log
 
-**Project:** ScalpSense
+**Project:** Schedulr
 **Team:** Team 67
 **Semester:** Spring 2026
 
