@@ -139,8 +139,8 @@
 
 **Action Items:**
 
-- [ ] [Incorperate Spreadsheet Preferences] - [2 members] - [4/6/2026]
-- [ ] [Output changes in the spreadsheet so they can be inputted into the system] - [1 member] - [4/6/2026]
+- [X] [Incorperate Spreadsheet Preferences] - [2 members] - [4/6/2026]
+- [X] [Output changes in the spreadsheet so they can be inputted into the system] - [1 member] - [4/6/2026]
 - [ ] [Figuring out number of sections] - [1 member] - [4/6/2026]
 
 ---
@@ -163,8 +163,8 @@
 
 **Action Items:**
 
-- [ ] [Set up data collection pipeline (Google Form + define fields + link to Sheets)] - [Nick] - [End of Spring Break]
-- [ ] [Process and structure collected data for scheduling (cleaning, transformation, test dataset)] - [Nick] - [End of Spring Break]
+- [X] [Set up data collection pipeline (Google Form + define fields + link to Sheets)] - [Nick] - [End of Spring Break]
+- [X] [Process and structure collected data for scheduling (cleaning, transformation, test dataset)] - [Nick] - [End of Spring Break]
 - [ ] [Determine required course sections using demand data] - [Vance] - [End of Spring Break]
 - [ ] [Organize and analyze course data (spreadsheet + optional parsing script)] - [Vance] - [End of Spring Break]
 - [ ] [Build core schedule generator (assign courses, terms, faculty)] - [Yashas] - [End of Spring Break]
