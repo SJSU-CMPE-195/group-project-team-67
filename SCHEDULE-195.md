@@ -14,7 +14,7 @@
 | ------- | -------- | ------------------ | ---------------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
 | 3/10/26 | 40 min   | Remote             | Everyone               | Idea of project, problem, milestones, tasks.   | Start report, think of features/constraints (MVP).                         |
 | 3/20/26 | 40 min   | Remote             | Vance, Yashas, Michael | Discussed updates, checkpoints, and next steps | Incorperate spreadsheet preferences, output spreadsheet incorperate system |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
+| 4/10/26 | 20 min   | In-person / Remote | Everyone                 |  Discussed updates, checkpoints, discuss implementation of visualizing a schedule, and to contact further for course dataset from previous semesters                                              |                                                                            |
 |         |          | In-person / Remote |                        |                                                |                                                                            |
 |         |          | In-person / Remote |                        |                                                |                                                                            |
 |         |          | In-person / Remote |                        |                                                |                                                                            |
