@@ -35,7 +35,7 @@
 | 2/9/2026  | 1 hr 15 min | Remote             | Everyone      | Work on slides and email professors                                                | Pitch Presentation                                                      |
 | 3/6/2026  | 25 min      | Remote             | Vance, Yashas | Talked with Professor Rojas about advisors/other projects (Gradescope/MyScheduler) | Email advisor(s), discuss with other team members about project changes |
 | 3/24/2026 | 20 min      | Remote             | Everyone      | Designate tasks + update Nick                                                      | Individual tasks                                                        |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
+| 4/9/2026  | 30 min      | Remote             | Everyone      | Everyone described their tasks for Schedulr Project                                | Individual tasks, Discussion on Clasp/Scripts                           |
 |           |             | In-person / Remote |               |                                                                                    |                                                                         |
 |           |             | In-person / Remote |               |                                                                                    |                                                                         |
 |           |             | In-person / Remote |               |                                                                                    |                                                                         |
@@ -172,19 +172,25 @@
 
 ---
 
-### [Date] - [Advisor/Team] Meeting
+### [4/9/2026] - [Team] Meeting
 
 **Attendees:**
 
+- Everyone
+
 ## **Discussion:**
+
+- Talked about clasp integration
+- Duties for each member
+- Went though induvidual project assignments
 
 ## **Decisions:**
 
+- Tasks for each member
+
 **Action Items:**
 
-- [ ] [Task] - [Owner] - [Due]
-- [ ] [Task] - [Owner] - [Due]
-
+- [ ] [Integration among everyone's project] - [Everyone] - [Next advisor meeting]
 ---
 
 ### [Date] - [Advisor/Team] Meeting
