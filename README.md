@@ -44,6 +44,13 @@ This PoC demonstrates:
 - Optimization beyond greedy assignment
 - Room assignment
 
+## Live PoC
+
+Google Sheet (Scheduler): https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/edit?usp=sharing
+Google Form (Input): https://forms.gle/BSXZEJVfRYdtAs1t9
+
+Use the form to submit sample responses, then run the scheduler from the Sheet menu (see **Running the PoC** section).
+
 ## Prerequisites
 
 - Google account
