@@ -1,168 +1,130 @@
 # Schedulr
 
-> A faculty course planning tool that automatically generates constraint-aware CMPE/SE term schedules by combining instructor preferences, prerequisite structures, outside course offerings, and demand forecasts.
+> A constraint-based faculty scheduling tool that automatically assigns professors to courses and generates time slots based on preferences, availability, and eligibility.
 
 ## Group 7
 
-| Name   | GitHub                                     | Email                      |
-| ------ | ------------------------------------------ | -------------------------- |
-| Name 1 | [@nick-mama](https://github.com/nick-mama) | nickjason.mamaoag@sjsu.edu |
-| Name 2 | [@vancednguyen](https://github.com/vancednguyen)   | vance.nguyen@sjsu.edu              |
-| Name 3 | [@YashSat21](https://github.com/YashSat21) | yashas.satheesh@sjsu.edu |
-| Name 4 | [@michaelnathykim](https://github.com/michaelnathykim)   | michael.n.kim@sjsu.edu              |
+| Name   | GitHub                                                 | Email                      |
+| ------ | ------------------------------------------------------ | -------------------------- |
+| Name 1 | [@nick-mama](https://github.com/nick-mama)             | nickjason.mamaoag@sjsu.edu |
+| Name 2 | [@vancednguyen](https://github.com/vancednguyen)       | vance.nguyen@sjsu.edu      |
+| Name 3 | [@YashSat21](https://github.com/YashSat21)             | yashas.satheesh@sjsu.edu   |
+| Name 4 | [@michaelnathykim](https://github.com/michaelnathykim) | michael.n.kim@sjsu.edu     |
 
 **Advisor:** Professor Rojas
 
 ---
 
+## Project Description
+
+Schedulr is a faculty course planning system that automates the process of assigning professors to courses and generating valid schedules. It uses instructor preferences, availability, prior teaching history, and institutional constraints to produce a feasible schedule.
+
 ## Problem Statement
 
 Departments currently rely on manual spreadsheets to plan CMPE and SE course offerings, making demand forecasting and multi-term coordination inefficient and error-prone. It’s difficult to balance prerequisites, outside course schedules, faculty preferences, and workload constraints without creating conflicts or mismatched capacity.
 
-## Solution
+## Proof of Concept Scope
 
-We propose a faculty course planning tool that automatically generates multi-term schedules using prerequisite structures, demand forecasts, outside course offerings, and instructor preferences. The system enforces hard constraints, optimizes soft preferences, and produces a clear term-by-term visualization. This reduces administrative workload while creating more accurate, conflict-free course plans.
+This PoC demonstrates:
 
-### Key Features
+- End-to-end scheduling pipeline:
+  - Google Form → Data cleaning → Faculty & eligibility generation → Schedule output
+- Automatic assignment of:
+  - Professors to courses
+  - Time slots to course sections
+- Constraint handling:
+  - Instructor availability
+  - Maximum teaching load
+  - Course eligibility
+  - Time conflicts
 
-- Data Entry/Import
-- Planner Output
-- Assignments
-- Capacity Forcast
-- Student Scheduler Integration
+**Not included yet:**
 
----
+- UI/dashboard
+- Optimization beyond greedy assignment
+- Room assignment
+
+## Prerequisites
+
+- Google account
+- Google Sheets
+- Node.js (for clasp)
+- clasp CLI
+
+Install clasp:
+
+```bash
+npm install -g @google/clasp
+clasp login
+```
+
+## Installation
+
+```bash
+git clone https://github.com/SJSU-CMPE-195/group-project-team-67.git
+cd schedulr_apps_script
+clasp pull
+```
+
+## Running the PoC
+
+1. Open the connected Google Sheet
+2. Submit sample responses through the Google Form
+3. In the Sheet menu, click **Schedulr** and run:
+
+- Clean preferences
+- Build faculty sheet
+- Build eligibility sheet
+- Generate schedule
+
+4. View outputs in:
+
+- ScheduleOutput
+- Conflicts
+- Course_Overview
 
 ## Demo
 
-[Link to demo video or GIF]
+### Schedule Output
 
-**Live Demo:** [URL if deployed]
+![Schedule Output](docs/screenshots/schedule.png)
 
----
+Shows assigned professors and generated time slots based on preferences and constraints.
 
-## Screenshots
+### Conflicts
 
-| Feature     | Screenshot                                   |
-| ----------- | -------------------------------------------- |
-| [Feature 1] | ![Screenshot](docs/screenshots/feature1.png) |
-| [Feature 2] | ![Screenshot](docs/screenshots/feature2.png) |
+![Conflicts](docs/screenshots/conflicts.png)
 
----
+Shows courses that could not be assigned due to constraints such as time conflicts, limited availability, or maximum load limits. Candidate faculty are listed to show why no valid assignment could be made within the current constraints.
 
 ## Tech Stack
 
-| Category   | Technology |
-| ---------- | ---------- |
-| Frontend   |            |
-| Backend    |            |
-| Database   |            |
-| Deployment |            |
+| Category  | Technology             |
+| --------- | ---------------------- |
+| Backend   | Google Apps Script     |
+| Data      | Google Sheets          |
+| Input     | Google Forms           |
+| Scripting | JavaScript             |
+| Scraping  | Python (BeautifulSoup) |
+| Tools     | Git, clasp             |
 
----
+## What's Next (195B)
 
-## Getting Started
-
-### Prerequisites
-
-- [Prerequisite 1] v.X.X+
-- [Prerequisite 2] v.X.X+
-
-### Installation
-
-```bash
-# Clone the repository
-git clone https://github.com/[org]/[repo].git
-cd [repo]
-
-# Install dependencies
-[install command]
-
-# Set up environment variables
-cp .env.example .env
-# Edit .env with your values
-
-# Run database migrations (if applicable)
-[migration command]
-```
-
-### Running Locally
-
-```bash
-# Development mode
-[dev command]
-
-# The app will be available at http://localhost:XXXX
-```
-
-### Running Tests
-
-```bash
-[test command]
-```
-
----
-
-## API Reference
-
-<details>
-<summary>Click to expand API endpoints</summary>
-
-| Method | Endpoint            | Description         |
-| ------ | ------------------- | ------------------- |
-| GET    | `/api/resource`     | Get all resources   |
-| GET    | `/api/resource/:id` | Get resource by ID  |
-| POST   | `/api/resource`     | Create new resource |
-| PUT    | `/api/resource/:id` | Update resource     |
-| DELETE | `/api/resource/:id` | Delete resource     |
-
-</details>
-
----
+- Improve scheduling algorithm (constraint optimization)
+- Add UI dashboard
+- Integrate real historical data
+- Add room assignment
+- Improve preference weighting system
 
 ## Project Structure
 
 ```
 .
-├── [folder]/           # Description
-├── src/                # Source code files
-├── tests/              # Test files
-├── docs/               # Documentation files
-└── README.md
+├── schedulr_apps_script/ # Apps Script scheduler
+├── sjsu_data_scraper/ # Python scraper
+├── docs/ # Screenshots
+├── README.md
 ```
-
----
-
-## Contributing
-
-1. Create a feature branch (`git checkout -b feature/amazing-feature`)
-2. Commit your changes (`git commit -m 'Add amazing feature'`)
-3. Push to the branch (`git push origin feature/amazing-feature`)
-4. Open a Pull Request
-
-### Branch Naming
-
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation updates
-- `refactor/` - Code refactoring
-
-### Commit Messages
-
-Use clear, descriptive commit messages:
-
-- `Add user authentication endpoint`
-- `Fix database connection timeout issue`
-- `Update README with setup instructions`
-
----
-
-## Acknowledgments
-
-- [Resource/Library/Person]
-- [Resource/Library/Person]
-
----
 
 ## License
 
