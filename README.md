@@ -105,7 +105,7 @@ To get the script ID:
 - Open the Google Sheet
 - Go to **Extensions -> Apps Script**
 - Click **Project Settings**
-- Copt the **Script ID**
+- Copy the **Script ID**
 
 Example `.clasp.json` file:
 
