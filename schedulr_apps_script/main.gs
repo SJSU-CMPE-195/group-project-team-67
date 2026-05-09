@@ -1,39 +1,40 @@
 function onOpen() {
   SpreadsheetApp.getUi()
-    .createMenu('Schedulr')
-    .addItem('Test connection', 'testSheetConnection')
+    .createMenu("Schedulr")
+    .addItem("Test connection", "testSheetConnection")
     .addSeparator()
-    .addItem('Clean preferences', 'cleanPreferences')
-    .addItem('Build faculty sheet', 'buildFacultySheet')
-    .addItem('Build eligibility sheet', 'buildEligibilitySheet')
-    .addItem('Generate schedule', 'generateSchedule')
-    .addItem('Generate course overview', 'generateCourseOverview')
-    .addItem('Setup/refresh headers guide', 'setupTemplateGuide')
+    .addItem("Clean preferences", "cleanPreferences")
+    .addItem("Build faculty sheet", "buildFacultySheet")
+    .addItem("Build eligibility sheet", "buildEligibilitySheet")
+    .addItem("Generate schedule", "generateSchedule")
+    .addItem("Generate course overview", "generateCourseOverview")
+    .addItem("Generate conflict summary", "generateConflictSummary")
+    .addItem("Setup/refresh headers guide", "setupTemplateGuide")
     .addToUi();
 }
 
 function testSheetConnection() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = ss.getActiveSheet();
-  sheet.getRange('A1').setValue('Apps Script connected');
+  sheet.getRange("A1").setValue("Apps Script connected");
 }
 
 function cleanPreferences() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = ss.getSheetByName('Form Responses 1');
-  if (!rawSheet) throw new Error('Missing sheet: Form Responses 1');
+  const rawSheet = ss.getSheetByName("Form Responses 1");
+  if (!rawSheet) throw new Error("Missing sheet: Form Responses 1");
 
-  const cleanSheet = getOrCreateSheet_(ss, 'Cleaned_Preferences');
+  const cleanSheet = getOrCreateSheet_(ss, "Cleaned_Preferences");
   const data = rawSheet.getDataRange().getValues();
 
   cleanSheet.clear();
   cleanSheet.appendRow([
-    'facultyName',
-    'email',
-    'courseCode',
-    'preferenceRank',
-    'preferredTime',
-    'maxCourses'
+    "facultyName",
+    "email",
+    "courseCode",
+    "preferenceRank",
+    "preferredTime",
+    "maxCourses",
   ]);
 
   if (data.length < 2) {
@@ -44,8 +45,10 @@ function cleanPreferences() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const facultyName = String(row[1] || '').trim();
-    const email = String(row[2] || '').trim().toLowerCase();
+    const facultyName = String(row[1] || "").trim();
+    const email = String(row[2] || "")
+      .trim()
+      .toLowerCase();
 
     const pref1 = normalizeCourseCode_(row[3]);
     const pref2 = normalizeCourseCode_(row[4]);
@@ -55,11 +58,35 @@ function cleanPreferences() {
     const maxCourses = Number(row[8] || 0);
 
     // Use the first available slot as "preferredTime" for scoring.
-    const preferredTime = availabilityList.length ? availabilityList[0] : '';
+    const preferredTime = availabilityList.length ? availabilityList[0] : "";
 
-    if (pref1) cleanSheet.appendRow([facultyName, email, pref1, 1, preferredTime, maxCourses]);
-    if (pref2 && pref2 !== pref1) cleanSheet.appendRow([facultyName, email, pref2, 2, preferredTime, maxCourses]);
-    if (pref3 && pref3 !== pref1 && pref3 !== pref2) cleanSheet.appendRow([facultyName, email, pref3, 3, preferredTime, maxCourses]);
+    if (pref1)
+      cleanSheet.appendRow([
+        facultyName,
+        email,
+        pref1,
+        1,
+        preferredTime,
+        maxCourses,
+      ]);
+    if (pref2 && pref2 !== pref1)
+      cleanSheet.appendRow([
+        facultyName,
+        email,
+        pref2,
+        2,
+        preferredTime,
+        maxCourses,
+      ]);
+    if (pref3 && pref3 !== pref1 && pref3 !== pref2)
+      cleanSheet.appendRow([
+        facultyName,
+        email,
+        pref3,
+        3,
+        preferredTime,
+        maxCourses,
+      ]);
   }
 
   styleOutputSheet_(cleanSheet);
@@ -67,18 +94,18 @@ function cleanPreferences() {
 
 function buildFacultySheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = mustGetSheet_(ss, 'Form Responses 1');
-  const facultySheet = getOrCreateSheet_(ss, 'Faculty');
+  const rawSheet = mustGetSheet_(ss, "Form Responses 1");
+  const facultySheet = getOrCreateSheet_(ss, "Faculty");
   const data = rawSheet.getDataRange().getValues();
 
   facultySheet.clear();
   facultySheet.appendRow([
-    'facultyId',
-    'facultyName',
-    'email',
-    'availableTerms',
-    'unavailableSlots',
-    'maxLoad'
+    "facultyId",
+    "facultyName",
+    "email",
+    "availableTerms",
+    "unavailableSlots",
+    "maxLoad",
   ]);
 
   if (data.length < 2) {
@@ -91,8 +118,10 @@ function buildFacultySheet() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const facultyName = String(row[1] || '').trim();
-    const email = String(row[2] || '').trim().toLowerCase();
+    const facultyName = String(row[1] || "").trim();
+    const email = String(row[2] || "")
+      .trim()
+      .toLowerCase();
     const unavailableSlots = splitMultiSelect_(row[7]).map(normalizeTimeSlot_);
     const maxLoad = Number(row[8] || 0);
 
@@ -104,9 +133,9 @@ function buildFacultySheet() {
       facultyId,
       facultyName,
       email,
-      'Spring',
-      unavailableSlots.join(', '),
-      maxLoad
+      "Spring",
+      unavailableSlots.join(", "),
+      maxLoad,
     ]);
   }
 
@@ -115,16 +144,12 @@ function buildFacultySheet() {
 
 function buildEligibilitySheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = mustGetSheet_(ss, 'Form Responses 1');
-  const eligibilitySheet = getOrCreateSheet_(ss, 'Eligibility');
+  const rawSheet = mustGetSheet_(ss, "Form Responses 1");
+  const eligibilitySheet = getOrCreateSheet_(ss, "Eligibility");
   const data = rawSheet.getDataRange().getValues();
 
   eligibilitySheet.clear();
-  eligibilitySheet.appendRow([
-    'facultyId',
-    'courseCode',
-    'eligible'
-  ]);
+  eligibilitySheet.appendRow(["facultyId", "courseCode", "eligible"]);
 
   if (data.length < 2) {
     styleOutputSheet_(eligibilitySheet);
@@ -136,23 +161,23 @@ function buildEligibilitySheet() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const facultyName = String(row[1] || '').trim();
-    const email = String(row[2] || '').trim().toLowerCase();
+    const facultyName = String(row[1] || "").trim();
+    const email = String(row[2] || "")
+      .trim()
+      .toLowerCase();
     const facultyId = email || facultyName;
 
-    const previouslyTaught = splitMultiSelect_(row[9]).map(normalizeCourseCode_);
+    const previouslyTaught = splitMultiSelect_(row[9]).map(
+      normalizeCourseCode_,
+    );
 
-    previouslyTaught.forEach(courseCode => {
+    previouslyTaught.forEach((courseCode) => {
       if (!courseCode) return;
-      const key = facultyId + '|' + courseCode;
+      const key = facultyId + "|" + courseCode;
       if (seen[key]) return;
       seen[key] = true;
 
-      eligibilitySheet.appendRow([
-        facultyId,
-        courseCode,
-        true
-      ]);
+      eligibilitySheet.appendRow([facultyId, courseCode, true]);
     });
   }
 
@@ -162,9 +187,11 @@ function buildEligibilitySheet() {
 function generateSchedule() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  const coursesSheet = mustGetSheet_(ss, 'Courses');
-  const rawSheet = mustGetSheet_(ss, 'Form Responses 1');
-  const prefSheet = ss.getSheetByName('Cleaned_Preferences') || ss.getSheetByName('Preferences');
+  const coursesSheet = mustGetSheet_(ss, "Courses");
+  const rawSheet = mustGetSheet_(ss, "Form Responses 1");
+  const prefSheet =
+    ss.getSheetByName("Cleaned_Preferences") ||
+    ss.getSheetByName("Preferences");
 
   if (!prefSheet) {
     cleanPreferences();
@@ -173,8 +200,10 @@ function generateSchedule() {
   // Auto-build missing/empty Faculty and Eligibility
   const facultySheet = ensureFacultySheetReady_(ss, rawSheet);
   const eligibilitySheet = ensureEligibilitySheetReady_(ss, rawSheet);
-  const timeSlotSheet = ss.getSheetByName('TimeSlots');
-  const actualPrefSheet = ss.getSheetByName('Cleaned_Preferences') || ss.getSheetByName('Preferences');
+  const timeSlotSheet = ss.getSheetByName("TimeSlots");
+  const actualPrefSheet =
+    ss.getSheetByName("Cleaned_Preferences") ||
+    ss.getSheetByName("Preferences");
 
   const courses = getNormalizedCourses_(coursesSheet);
   const faculty = getNormalizedFaculty_(facultySheet, actualPrefSheet);
@@ -182,10 +211,11 @@ function generateSchedule() {
   const preferences = getNormalizedPreferences_(actualPrefSheet, faculty);
   const timeSlots = getNormalizedTimeSlots_(timeSlotSheet);
 
-  if (!courses.length) throw new Error('Courses sheet has no usable rows.');
-  if (!faculty.length) throw new Error('Faculty sheet has no usable rows.');
-  if (!eligibility.length) throw new Error('Eligibility sheet has no usable rows.');
-  if (!timeSlots.length) throw new Error('No usable time slots found.');
+  if (!courses.length) throw new Error("Courses sheet has no usable rows.");
+  if (!faculty.length) throw new Error("Faculty sheet has no usable rows.");
+  if (!eligibility.length)
+    throw new Error("Eligibility sheet has no usable rows.");
+  if (!timeSlots.length) throw new Error("No usable time slots found.");
 
   const scheduleRows = [];
   const conflictRows = [];
@@ -193,52 +223,77 @@ function generateSchedule() {
   const facultyAssignments = {};
   const slotUsage = {};
 
-  faculty.forEach(f => {
+  faculty.forEach((f) => {
     facultyLoad[f.facultyId] = 0;
     facultyAssignments[f.facultyId] = [];
   });
 
-  const expandedCourses = expandCourses_(courses)
-    .sort((a, b) => compareExpandedCourses_(a, b, eligibility, preferences));
+  const expandedCourses = expandCourses_(courses).sort((a, b) =>
+    compareExpandedCourses_(a, b, eligibility, preferences),
+  );
 
-  expandedCourses.forEach(course => {
-    const allowedTerms = course.termsOffered.length ? course.termsOffered : ['Spring'];
+  expandedCourses.forEach((course) => {
+    const allowedTerms = course.termsOffered.length
+      ? course.termsOffered
+      : ["Spring"];
     let bestChoice = null;
     const rejectionNotes = [];
 
     for (const term of allowedTerms) {
       for (const slot of timeSlots) {
-        if (course.allowedTimeSlots.length && course.allowedTimeSlots.indexOf(slot) === -1) {
+        if (
+          course.allowedTimeSlots.length &&
+          course.allowedTimeSlots.indexOf(slot) === -1
+        ) {
           continue;
         }
 
         if (isCourseSlotTaken_(course.courseCode, term, slot, slotUsage)) {
-          rejectionNotes.push('Course already uses ' + slot + ' in ' + term);
+          rejectionNotes.push("Course already uses " + slot + " in " + term);
           continue;
         }
 
         const candidates = faculty
-          .filter(f => isEligible_(f.facultyId, course.courseCode, eligibility))
-          .filter(f => isAvailableForTerm_(f, term))
-          .filter(f => !isUnavailableForSlot_(f, slot))
-          .filter(f => !hasTimeConflict_(f, term, slot, facultyAssignments))
-          .filter(f => !isOverloaded_(f, facultyLoad))
-          .sort((a, b) => compareCandidatesForSlot_(a, b, course, term, slot, preferences, facultyLoad));
+          .filter((f) =>
+            isEligible_(f.facultyId, course.courseCode, eligibility),
+          )
+          .filter((f) => isAvailableForTerm_(f, term))
+          .filter((f) => !isUnavailableForSlot_(f, slot))
+          .filter((f) => !hasTimeConflict_(f, term, slot, facultyAssignments))
+          .filter((f) => !isOverloaded_(f, facultyLoad))
+          .sort((a, b) =>
+            compareCandidatesForSlot_(
+              a,
+              b,
+              course,
+              term,
+              slot,
+              preferences,
+              facultyLoad,
+            ),
+          );
 
         if (candidates.length) {
           const picked = candidates[0];
-          const score = scoreCandidateChoice_(picked, course, term, slot, preferences, facultyLoad);
+          const score = scoreCandidateChoice_(
+            picked,
+            course,
+            term,
+            slot,
+            preferences,
+            facultyLoad,
+          );
 
           if (!bestChoice || score < bestChoice.score) {
             bestChoice = {
               score: score,
               faculty: picked,
               term: term,
-              timeSlot: slot
+              timeSlot: slot,
             };
           }
         } else {
-          rejectionNotes.push('No faculty fits ' + term + ' / ' + slot);
+          rejectionNotes.push("No faculty fits " + term + " / " + slot);
         }
       }
     }
@@ -250,9 +305,14 @@ function generateSchedule() {
         term: bestChoice.term,
         timeSlot: bestChoice.timeSlot,
         courseCode: course.courseCode,
-        section: course.section
+        section: course.section,
       });
-      markCourseSlotUsed_(course.courseCode, bestChoice.term, bestChoice.timeSlot, slotUsage);
+      markCourseSlotUsed_(
+        course.courseCode,
+        bestChoice.term,
+        bestChoice.timeSlot,
+        slotUsage,
+      );
 
       scheduleRows.push([
         bestChoice.term,
@@ -262,51 +322,93 @@ function generateSchedule() {
         picked.facultyId,
         picked.facultyName,
         bestChoice.timeSlot,
-        'ASSIGNED',
-        buildAssignmentNote_(picked.facultyId, course.courseCode, bestChoice.timeSlot, preferences)
+        "ASSIGNED",
+        buildAssignmentNote_(
+          picked.facultyId,
+          course.courseCode,
+          bestChoice.timeSlot,
+          preferences,
+        ),
       ]);
     } else {
       const candidateFaculty = faculty
-        .filter(f => isEligible_(f.facultyId, course.courseCode, eligibility))
-        .map(f => f.facultyName)
-        .join(', ');
+        .filter((f) => isEligible_(f.facultyId, course.courseCode, eligibility))
+        .map((f) => f.facultyName)
+        .join(", ");
+
+      const eligibleCount = faculty.filter((f) =>
+        isEligible_(f.facultyId, course.courseCode, eligibility),
+      ).length;
+
+      const conflictType = classifyConflictType_(rejectionNotes, eligibleCount);
 
       conflictRows.push([
         course.courseCode,
         course.courseName,
-        allowedTerms.join(', '),
+        allowedTerms.join(", "),
         course.section,
-        course.allowedTimeSlots.join(', ') || 'Any standard slot',
-        collapseReasons_(rejectionNotes) || 'No valid professor + time slot combination found',
-        candidateFaculty || 'None'
+        course.allowedTimeSlots.join(", ") || "Any standard slot",
+        conflictType,
+        collapseReasons_(rejectionNotes) ||
+          "No valid professor + time slot combination found",
+        eligibleCount,
+        candidateFaculty || "None",
       ]);
     }
   });
 
-  writeSheet_(ss, 'ScheduleOutput', [
-    'term', 'courseCode', 'courseName', 'section', 'facultyId', 'facultyName', 'timeSlot', 'status', 'notes'
-  ], scheduleRows);
+  writeSheet_(
+    ss,
+    "ScheduleOutput",
+    [
+      "term",
+      "courseCode",
+      "courseName",
+      "section",
+      "facultyId",
+      "facultyName",
+      "timeSlot",
+      "status",
+      "notes",
+    ],
+    scheduleRows,
+  );
 
-  writeSheet_(ss, 'Conflicts', [
-    'courseCode', 'courseName', 'termsTried', 'section', 'timeSlotOptions', 'reason', 'candidateFaculty'
-  ], conflictRows);
+  writeSheet_(
+    ss,
+    "Conflicts",
+    [
+      "courseCode",
+      "courseName",
+      "termsTried",
+      "section",
+      "timeSlotOptions",
+      "conflictType",
+      "reason",
+      "eligibleFacultyCount",
+      "candidateFaculty",
+    ],
+    conflictRows,
+  );
 
   generateCourseOverview();
 }
 
 function generateCourseOverview() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const outputSheet = getOrCreateSheet_(ss, 'Course_Overview');
+  const outputSheet = getOrCreateSheet_(ss, "Course_Overview");
   outputSheet.clear();
 
-  const conflictSheet = ss.getSheetByName('Conflicts');
-  const coursesSheet = ss.getSheetByName('Courses');
+  const conflictSheet = ss.getSheetByName("Conflicts");
+  const coursesSheet = ss.getSheetByName("Courses");
 
   const conflictSet = {};
   if (conflictSheet && conflictSheet.getLastRow() > 1) {
     const rows = sheetToObjects_(conflictSheet);
-    rows.forEach(r => {
-      const code = normalizeCourseCode_(pickField_(r, ['courseCode', 'CourseCode', 'course', 'Course']));
+    rows.forEach((r) => {
+      const code = normalizeCourseCode_(
+        pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
+      );
       if (code) conflictSet[code] = true;
     });
   }
@@ -318,85 +420,202 @@ function generateCourseOverview() {
   const techElective = [];
   const profNeeded = [];
 
-  courseRows.forEach(course => {
+  courseRows.forEach((course) => {
     const row = [course.courseCode, course.courseName];
-    const category = String(course.category || '').trim();
+    const category = String(course.category || "").trim();
 
-    if (category === 'Lower Div') lowerDiv.push(row);
-    if (category === 'Upper Div') upperDiv.push(row);
-    if (category === 'CMPE195 Prereq' || category === '195A Prereq') prereq195.push(row);
-    if (category === 'Tech Elective') techElective.push(row);
+    if (category === "Lower Div") lowerDiv.push(row);
+    if (category === "Upper Div") upperDiv.push(row);
+    if (category === "CMPE195 Prereq" || category === "195A Prereq")
+      prereq195.push(row);
+    if (category === "Tech Elective") techElective.push(row);
     if (conflictSet[course.courseCode]) profNeeded.push(row);
   });
 
-  outputSheet.getRange(1, 1, 1, 5).setValues([[
-    'Lower Div Courses', 'Upper Div Courses', '195A Prereq', 'Tech Elective', 'Prof Needed'
-  ]]);
+  outputSheet
+    .getRange(1, 1, 1, 5)
+    .setValues([
+      [
+        "Lower Div Courses",
+        "Upper Div Courses",
+        "195A Prereq",
+        "Tech Elective",
+        "Prof Needed",
+      ],
+    ]);
 
-  writeSingleColumnBlock_(outputSheet, 2, 1, lowerDiv.map(r => [r[0] + ' - ' + r[1]]));
-  writeSingleColumnBlock_(outputSheet, 2, 2, upperDiv.map(r => [r[0] + ' - ' + r[1]]));
-  writeSingleColumnBlock_(outputSheet, 2, 3, prereq195.map(r => [r[0] + ' - ' + r[1]]));
-  writeSingleColumnBlock_(outputSheet, 2, 4, techElective.map(r => [r[0] + ' - ' + r[1]]));
-  writeSingleColumnBlock_(outputSheet, 2, 5, profNeeded.map(r => [r[0] + ' - ' + r[1]]));
+  writeSingleColumnBlock_(
+    outputSheet,
+    2,
+    1,
+    lowerDiv.map((r) => [r[0] + " - " + r[1]]),
+  );
+  writeSingleColumnBlock_(
+    outputSheet,
+    2,
+    2,
+    upperDiv.map((r) => [r[0] + " - " + r[1]]),
+  );
+  writeSingleColumnBlock_(
+    outputSheet,
+    2,
+    3,
+    prereq195.map((r) => [r[0] + " - " + r[1]]),
+  );
+  writeSingleColumnBlock_(
+    outputSheet,
+    2,
+    4,
+    techElective.map((r) => [r[0] + " - " + r[1]]),
+  );
+  writeSingleColumnBlock_(
+    outputSheet,
+    2,
+    5,
+    profNeeded.map((r) => [r[0] + " - " + r[1]]),
+  );
 
   styleOutputSheet_(outputSheet);
 }
 
 function setupTemplateGuide() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const guide = getOrCreateSheet_(ss, 'Template_Guide');
+  const guide = getOrCreateSheet_(ss, "Template_Guide");
   guide.clear();
-  guide.getRange(1, 1, 1, 2).setValues([['Sheet', 'Recommended columns']]);
+  guide.getRange(1, 1, 1, 2).setValues([["Sheet", "Recommended columns"]]);
   guide.getRange(2, 1, 5, 2).setValues([
-    ['Courses', 'courseCode, courseName, sectionsNeeded, termsOffered, category, optional: allowedTimeSlots'],
-    ['Faculty', 'facultyId, facultyName, email, availableTerms, unavailableSlots, maxLoad'],
-    ['Eligibility', 'facultyId, courseCode, eligible'],
-    ['TimeSlots', 'timeSlot'],
-    ['Cleaned_Preferences', 'facultyName, email, courseCode, preferenceRank, preferredTime, maxCourses']
+    [
+      "Courses",
+      "courseCode, courseName, sectionsNeeded, termsOffered, category, optional: allowedTimeSlots",
+    ],
+    [
+      "Faculty",
+      "facultyId, facultyName, email, availableTerms, unavailableSlots, maxLoad",
+    ],
+    ["Eligibility", "facultyId, courseCode, eligible"],
+    ["TimeSlots", "timeSlot"],
+    [
+      "Cleaned_Preferences",
+      "facultyName, email, courseCode, preferenceRank, preferredTime, maxCourses",
+    ],
   ]);
   styleOutputSheet_(guide);
 }
 
 function getNormalizedCourses_(sheet) {
   const rows = sheetToObjects_(sheet);
-  return rows.map(r => ({
-    courseCode: normalizeCourseCode_(pickField_(r, ['courseCode', 'CourseCode', 'course', 'Course'])),
-    courseName: pickField_(r, ['courseName', 'CourseName', 'course title', 'Course Title', 'title', 'Title']) || '',
-    sectionsNeeded: Number(pickField_(r, ['sectionsNeeded', 'SectionsNeeded', 'section_amount', 'sectionAmount', 'sections']) || 1),
-    termsOffered: splitList_(pickField_(r, ['termsOffered', 'TermsOffered', 'term', 'Term', 'terms'])),
-    allowedTimeSlots: splitList_(pickField_(r, ['allowedTimeSlots', 'AllowedTimeSlots', 'allowedSlots', 'AllowedSlots'])).map(normalizeTimeSlot_),
-    category: String(pickField_(r, ['category', 'Category']) || '').trim()
-  })).filter(r => r.courseCode && Number(r.sectionsNeeded || 0) > 0);
+  return rows
+    .map((r) => ({
+      courseCode: normalizeCourseCode_(
+        pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
+      ),
+      courseName:
+        pickField_(r, [
+          "courseName",
+          "CourseName",
+          "course title",
+          "Course Title",
+          "title",
+          "Title",
+        ]) || "",
+      sectionsNeeded: Number(
+        pickField_(r, [
+          "sectionsNeeded",
+          "SectionsNeeded",
+          "section_amount",
+          "sectionAmount",
+          "sections",
+        ]) || 1,
+      ),
+      termsOffered: splitList_(
+        pickField_(r, [
+          "termsOffered",
+          "TermsOffered",
+          "term",
+          "Term",
+          "terms",
+        ]),
+      ),
+      allowedTimeSlots: splitList_(
+        pickField_(r, [
+          "allowedTimeSlots",
+          "AllowedTimeSlots",
+          "allowedSlots",
+          "AllowedSlots",
+        ]),
+      ).map(normalizeTimeSlot_),
+      category: String(pickField_(r, ["category", "Category"]) || "").trim(),
+    }))
+    .filter((r) => r.courseCode && Number(r.sectionsNeeded || 0) > 0);
 }
 
 function getNormalizedFaculty_(sheet, prefSheet) {
   const rows = sheetToObjects_(sheet);
   const maxFromPrefs = buildMaxLoadLookupFromPreferences_(prefSheet);
 
-  return rows.map(r => {
-    const email = String(pickField_(r, ['email', 'Email']) || '').trim().toLowerCase();
-    const facultyName = String(pickField_(r, ['facultyName', 'FacultyName', 'name', 'Name']) || '').trim();
-    const facultyId = String(pickField_(r, ['facultyId', 'FacultyId', 'id', 'ID', 'email', 'Email']) || email || facultyName).trim();
-    const fallbackMax = email && maxFromPrefs[email] ? maxFromPrefs[email] : '';
+  return rows
+    .map((r) => {
+      const email = String(pickField_(r, ["email", "Email"]) || "")
+        .trim()
+        .toLowerCase();
+      const facultyName = String(
+        pickField_(r, ["facultyName", "FacultyName", "name", "Name"]) || "",
+      ).trim();
+      const facultyId = String(
+        pickField_(r, [
+          "facultyId",
+          "FacultyId",
+          "id",
+          "ID",
+          "email",
+          "Email",
+        ]) ||
+          email ||
+          facultyName,
+      ).trim();
+      const fallbackMax =
+        email && maxFromPrefs[email] ? maxFromPrefs[email] : "";
 
-    return {
-      facultyId: facultyId,
-      facultyName: facultyName || facultyId,
-      email: email,
-      availableTerms: splitList_(pickField_(r, ['availableTerms', 'AvailableTerms', 'terms', 'Terms'])),
-      unavailableSlots: splitList_(pickField_(r, ['unavailableSlots', 'UnavailableSlots', 'blockedSlots', 'BlockedSlots'])).map(normalizeTimeSlot_),
-      maxLoad: Number(pickField_(r, ['maxLoad', 'MaxLoad', 'maxCourses', 'Max Courses']) || fallbackMax || 0)
-    };
-  }).filter(r => r.facultyId);
+      return {
+        facultyId: facultyId,
+        facultyName: facultyName || facultyId,
+        email: email,
+        availableTerms: splitList_(
+          pickField_(r, ["availableTerms", "AvailableTerms", "terms", "Terms"]),
+        ),
+        unavailableSlots: splitList_(
+          pickField_(r, [
+            "unavailableSlots",
+            "UnavailableSlots",
+            "blockedSlots",
+            "BlockedSlots",
+          ]),
+        ).map(normalizeTimeSlot_),
+        maxLoad: Number(
+          pickField_(r, ["maxLoad", "MaxLoad", "maxCourses", "Max Courses"]) ||
+            fallbackMax ||
+            0,
+        ),
+      };
+    })
+    .filter((r) => r.facultyId);
 }
 
 function getNormalizedEligibility_(sheet) {
   const rows = sheetToObjects_(sheet);
-  return rows.map(r => ({
-    facultyId: String(pickField_(r, ['facultyId', 'FacultyId', 'id', 'ID', 'email', 'Email'])).trim(),
-    courseCode: normalizeCourseCode_(pickField_(r, ['courseCode', 'CourseCode', 'course', 'Course'])),
-    eligible: normalizeBoolean_(pickField_(r, ['eligible', 'Eligible', 'canTeach', 'CanTeach']))
-  })).filter(r => r.facultyId && r.courseCode);
+  return rows
+    .map((r) => ({
+      facultyId: String(
+        pickField_(r, ["facultyId", "FacultyId", "id", "ID", "email", "Email"]),
+      ).trim(),
+      courseCode: normalizeCourseCode_(
+        pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
+      ),
+      eligible: normalizeBoolean_(
+        pickField_(r, ["eligible", "Eligible", "canTeach", "CanTeach"]),
+      ),
+    }))
+    .filter((r) => r.facultyId && r.courseCode);
 }
 
 function getNormalizedPreferences_(sheet, facultyList) {
@@ -404,43 +623,63 @@ function getNormalizedPreferences_(sheet, facultyList) {
   const facultyByEmail = {};
   const facultyByName = {};
 
-  facultyList.forEach(f => {
+  facultyList.forEach((f) => {
     if (f.email) facultyByEmail[f.email.toLowerCase()] = f.facultyId;
     if (f.facultyName) facultyByName[f.facultyName.toLowerCase()] = f.facultyId;
   });
 
-  return rows.map(r => {
-    const email = String(pickField_(r, ['email', 'Email']) || '').trim().toLowerCase();
-    const name = String(pickField_(r, ['facultyName', 'FacultyName', 'name', 'Name']) || '').trim();
-    const directId = String(pickField_(r, ['facultyId', 'FacultyId', 'id', 'ID']) || '').trim();
-    const facultyId = directId || facultyByEmail[email] || facultyByName[name.toLowerCase()] || email || name;
+  return rows
+    .map((r) => {
+      const email = String(pickField_(r, ["email", "Email"]) || "")
+        .trim()
+        .toLowerCase();
+      const name = String(
+        pickField_(r, ["facultyName", "FacultyName", "name", "Name"]) || "",
+      ).trim();
+      const directId = String(
+        pickField_(r, ["facultyId", "FacultyId", "id", "ID"]) || "",
+      ).trim();
+      const facultyId =
+        directId ||
+        facultyByEmail[email] ||
+        facultyByName[name.toLowerCase()] ||
+        email ||
+        name;
 
-    return {
-      facultyId: facultyId,
-      courseCode: normalizeCourseCode_(pickField_(r, ['courseCode', 'CourseCode', 'course', 'Course'])),
-      preferenceRank: Number(pickField_(r, ['preferenceRank', 'PreferenceRank', 'Rank', 'rank']) || 999),
-      preferredTime: normalizeTimeSlot_(pickField_(r, ['preferredTime', 'Preferred Time']) || ''),
-      maxCourses: Number(pickField_(r, ['maxCourses', 'Max Courses']) || 0)
-    };
-  }).filter(r => r.facultyId && r.courseCode);
+      return {
+        facultyId: facultyId,
+        courseCode: normalizeCourseCode_(
+          pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
+        ),
+        preferenceRank: Number(
+          pickField_(r, ["preferenceRank", "PreferenceRank", "Rank", "rank"]) ||
+            999,
+        ),
+        preferredTime: normalizeTimeSlot_(
+          pickField_(r, ["preferredTime", "Preferred Time"]) || "",
+        ),
+        maxCourses: Number(pickField_(r, ["maxCourses", "Max Courses"]) || 0),
+      };
+    })
+    .filter((r) => r.facultyId && r.courseCode);
 }
 
 function getNormalizedTimeSlots_(sheet) {
   const defaults = [
-    'MW 9:00-10:15',
-    'MW 10:30-11:45',
-    'MW 12:00-1:15',
-    'MW 1:30-2:45',
-    'MW 3:00-4:15',
-    'TTh 9:00-10:15',
-    'TTh 10:30-11:45',
-    'TTh 12:00-1:15',
-    'TTh 1:30-2:45',
-    'TTh 3:00-4:15',
-    'M 6:00-8:45',
-    'T 6:00-8:45',
-    'W 6:00-8:45',
-    'Th 6:00-8:45'
+    "MW 9:00-10:15",
+    "MW 10:30-11:45",
+    "MW 12:00-1:15",
+    "MW 1:30-2:45",
+    "MW 3:00-4:15",
+    "TTh 9:00-10:15",
+    "TTh 10:30-11:45",
+    "TTh 12:00-1:15",
+    "TTh 1:30-2:45",
+    "TTh 3:00-4:15",
+    "M 6:00-8:45",
+    "T 6:00-8:45",
+    "W 6:00-8:45",
+    "Th 6:00-8:45",
   ];
 
   if (!sheet || sheet.getLastRow() < 2) {
@@ -449,7 +688,11 @@ function getNormalizedTimeSlots_(sheet) {
 
   const rows = sheetToObjects_(sheet);
   const slots = rows
-    .map(r => normalizeTimeSlot_(pickField_(r, ['timeSlot', 'TimeSlot', 'slot', 'Slot'])))
+    .map((r) =>
+      normalizeTimeSlot_(
+        pickField_(r, ["timeSlot", "TimeSlot", "slot", "Slot"]),
+      ),
+    )
     .filter(Boolean);
 
   return slots.length ? uniqueList_(slots) : defaults;
@@ -467,17 +710,42 @@ function compareExpandedCourses_(a, b, eligibility, preferences) {
   return a.courseCode.localeCompare(b.courseCode);
 }
 
-function compareCandidatesForSlot_(a, b, course, term, slot, preferences, facultyLoad) {
-  return scoreCandidateChoice_(a, course, term, slot, preferences, facultyLoad) -
-         scoreCandidateChoice_(b, course, term, slot, preferences, facultyLoad);
+function compareCandidatesForSlot_(
+  a,
+  b,
+  course,
+  term,
+  slot,
+  preferences,
+  facultyLoad,
+) {
+  return (
+    scoreCandidateChoice_(a, course, term, slot, preferences, facultyLoad) -
+    scoreCandidateChoice_(b, course, term, slot, preferences, facultyLoad)
+  );
 }
 
-function scoreCandidateChoice_(faculty, course, term, slot, preferences, facultyLoad) {
-  const prefScore = getPreferenceScore_(faculty.facultyId, course.courseCode, preferences);
-  const timeScore = getPreferredTimeScore_(faculty.facultyId, slot, preferences);
+function scoreCandidateChoice_(
+  faculty,
+  course,
+  term,
+  slot,
+  preferences,
+  facultyLoad,
+) {
+  const prefScore = getPreferenceScore_(
+    faculty.facultyId,
+    course.courseCode,
+    preferences,
+  );
+  const timeScore = getPreferredTimeScore_(
+    faculty.facultyId,
+    slot,
+    preferences,
+  );
   const loadScore = Number(facultyLoad[faculty.facultyId] || 0);
 
-  return (prefScore * 100) + (timeScore * 10) + loadScore;
+  return prefScore * 100 + timeScore * 10 + loadScore;
 }
 
 function buildAssignmentNote_(facultyId, courseCode, timeSlot, preferences) {
@@ -485,20 +753,24 @@ function buildAssignmentNote_(facultyId, courseCode, timeSlot, preferences) {
   const timeRank = getPreferredTimeScore_(facultyId, timeSlot, preferences);
 
   const notes = [];
-  if (courseRank < 999) notes.push('course preference rank ' + courseRank);
-  else notes.push('eligible match');
+  if (courseRank < 999) notes.push("course preference rank " + courseRank);
+  else notes.push("eligible match");
 
-  if (timeRank === 0) notes.push('preferred time matched');
-  else notes.push('standard slot assigned');
+  if (timeRank === 0) notes.push("preferred time matched");
+  else notes.push("standard slot assigned");
 
-  return notes.join('; ');
+  return notes.join("; ");
 }
 
 function countEligibleFaculty_(courseCode, eligibilityRows) {
   let count = 0;
   const seen = {};
-  eligibilityRows.forEach(row => {
-    if (normalizeCourseCode_(row.courseCode) === normalizeCourseCode_(courseCode) && row.eligible === true) {
+  eligibilityRows.forEach((row) => {
+    if (
+      normalizeCourseCode_(row.courseCode) ===
+        normalizeCourseCode_(courseCode) &&
+      row.eligible === true
+    ) {
       if (!seen[row.facultyId]) {
         seen[row.facultyId] = true;
         count += 1;
@@ -509,29 +781,41 @@ function countEligibleFaculty_(courseCode, eligibilityRows) {
 }
 
 function countPreferenceMatches_(courseCode, preferences) {
-  return preferences.filter(p => normalizeCourseCode_(p.courseCode) === normalizeCourseCode_(courseCode)).length;
+  return preferences.filter(
+    (p) =>
+      normalizeCourseCode_(p.courseCode) === normalizeCourseCode_(courseCode),
+  ).length;
 }
 
 function getPreferenceScore_(facultyId, courseCode, preferences) {
-  const row = preferences.find(p =>
-    String(p.facultyId).trim() === String(facultyId).trim() &&
-    normalizeCourseCode_(p.courseCode) === normalizeCourseCode_(courseCode)
+  const row = preferences.find(
+    (p) =>
+      String(p.facultyId).trim() === String(facultyId).trim() &&
+      normalizeCourseCode_(p.courseCode) === normalizeCourseCode_(courseCode),
   );
   return row ? Number(row.preferenceRank || 999) : 999;
 }
 
 function getPreferredTimeScore_(facultyId, timeSlot, preferences) {
-  const rows = preferences.filter(p => String(p.facultyId).trim() === String(facultyId).trim());
+  const rows = preferences.filter(
+    (p) => String(p.facultyId).trim() === String(facultyId).trim(),
+  );
   if (!rows.length) return 1;
-  const match = rows.find(r => String(r.preferredTime).trim() && normalizeTimeSlot_(r.preferredTime) === normalizeTimeSlot_(timeSlot));
+  const match = rows.find(
+    (r) =>
+      String(r.preferredTime).trim() &&
+      normalizeTimeSlot_(r.preferredTime) === normalizeTimeSlot_(timeSlot),
+  );
   return match ? 0 : 1;
 }
 
 function isEligible_(facultyId, courseCode, eligibilityRows) {
-  return eligibilityRows.some(row =>
-    String(row.facultyId).trim() === String(facultyId).trim() &&
-    normalizeCourseCode_(row.courseCode) === normalizeCourseCode_(courseCode) &&
-    row.eligible === true
+  return eligibilityRows.some(
+    (row) =>
+      String(row.facultyId).trim() === String(facultyId).trim() &&
+      normalizeCourseCode_(row.courseCode) ===
+        normalizeCourseCode_(courseCode) &&
+      row.eligible === true,
   );
 }
 
@@ -554,29 +838,51 @@ function isOverloaded_(faculty, facultyLoad) {
 function hasTimeConflict_(faculty, term, timeSlot, facultyAssignments) {
   if (!timeSlot) return false;
   const assignments = facultyAssignments[faculty.facultyId] || [];
-  return assignments.some(a =>
-    String(a.term).trim() === String(term).trim() &&
-    normalizeTimeSlot_(a.timeSlot) === normalizeTimeSlot_(timeSlot)
+  return assignments.some(
+    (a) =>
+      String(a.term).trim() === String(term).trim() &&
+      normalizeTimeSlot_(a.timeSlot) === normalizeTimeSlot_(timeSlot),
   );
 }
 
 function isCourseSlotTaken_(courseCode, term, timeSlot, slotUsage) {
-  const key = String(term).trim() + '|' + normalizeCourseCode_(courseCode) + '|' + normalizeTimeSlot_(timeSlot);
+  const key =
+    String(term).trim() +
+    "|" +
+    normalizeCourseCode_(courseCode) +
+    "|" +
+    normalizeTimeSlot_(timeSlot);
   return slotUsage[key] === true;
 }
 
 function markCourseSlotUsed_(courseCode, term, timeSlot, slotUsage) {
-  const key = String(term).trim() + '|' + normalizeCourseCode_(courseCode) + '|' + normalizeTimeSlot_(timeSlot);
+  const key =
+    String(term).trim() +
+    "|" +
+    normalizeCourseCode_(courseCode) +
+    "|" +
+    normalizeTimeSlot_(timeSlot);
   slotUsage[key] = true;
 }
 
 function collapseReasons_(reasons) {
-  return uniqueList_(reasons.filter(Boolean)).slice(0, 8).join('; ');
+  return uniqueList_(reasons.filter(Boolean)).slice(0, 8).join("; ");
+}
+
+function classifyConflictType_(reasons, eligibleCount) {
+  if (eligibleCount === 0) return "NO_ELIGIBLE_FACULTY";
+  const text = reasons.join(" ").toLowerCase();
+  if (text.includes("overload") || text.includes("max load"))
+    return "MAX_LOAD_REACHED";
+  if (text.includes("time conflict") || text.includes("already uses"))
+    return "TIME_CONFLICT";
+  if (text.includes("no faculty fits")) return "ALL_SLOTS_BLOCKED";
+  return "NO_VALID_COMBINATION";
 }
 
 function expandCourses_(courses) {
   const expanded = [];
-  courses.forEach(course => {
+  courses.forEach((course) => {
     const count = Number(course.sectionsNeeded || 1);
     for (let i = 1; i <= count; i++) {
       expanded.push({
@@ -585,7 +891,7 @@ function expandCourses_(courses) {
         termsOffered: course.termsOffered,
         allowedTimeSlots: course.allowedTimeSlots,
         category: course.category,
-        section: i
+        section: i,
       });
     }
   });
@@ -593,19 +899,19 @@ function expandCourses_(courses) {
 }
 
 function ensureFacultySheetReady_(ss, rawSheet) {
-  let sheet = ss.getSheetByName('Faculty');
+  let sheet = ss.getSheetByName("Faculty");
   if (!sheet || sheet.getLastRow() < 2) {
     buildFacultySheet();
-    sheet = ss.getSheetByName('Faculty');
+    sheet = ss.getSheetByName("Faculty");
   }
   return sheet;
 }
 
 function ensureEligibilitySheetReady_(ss, rawSheet) {
-  let sheet = ss.getSheetByName('Eligibility');
+  let sheet = ss.getSheetByName("Eligibility");
   if (!sheet || sheet.getLastRow() < 2) {
     buildEligibilitySheet();
-    sheet = ss.getSheetByName('Eligibility');
+    sheet = ss.getSheetByName("Eligibility");
   }
   return sheet;
 }
@@ -613,12 +919,12 @@ function ensureEligibilitySheetReady_(ss, rawSheet) {
 function sheetToObjects_(sheet) {
   const values = sheet.getDataRange().getValues();
   if (!values.length) return [];
-  const headers = values.shift().map(h => String(h).trim());
+  const headers = values.shift().map((h) => String(h).trim());
   return values
-    .filter(row => row.some(cell => String(cell).trim() !== ''))
-    .map(row => {
+    .filter((row) => row.some((cell) => String(cell).trim() !== ""))
+    .map((row) => {
       const obj = {};
-      headers.forEach((header, index) => obj[header] = row[index]);
+      headers.forEach((header, index) => (obj[header] = row[index]));
       return obj;
     });
 }
@@ -644,9 +950,11 @@ function buildMaxLoadLookupFromPreferences_(prefSheet) {
   if (!prefSheet || prefSheet.getLastRow() < 2) return map;
 
   const rows = sheetToObjects_(prefSheet);
-  rows.forEach(r => {
-    const email = String(pickField_(r, ['email', 'Email']) || '').trim().toLowerCase();
-    const max = Number(pickField_(r, ['maxCourses', 'Max Courses']) || 0);
+  rows.forEach((r) => {
+    const email = String(pickField_(r, ["email", "Email"]) || "")
+      .trim()
+      .toLowerCase();
+    const max = Number(pickField_(r, ["maxCourses", "Max Courses"]) || 0);
     if (email && max > 0) map[email] = max;
   });
   return map;
@@ -654,30 +962,33 @@ function buildMaxLoadLookupFromPreferences_(prefSheet) {
 
 function pickField_(obj, aliases) {
   for (let i = 0; i < aliases.length; i++) {
-    if (Object.prototype.hasOwnProperty.call(obj, aliases[i])) return obj[aliases[i]];
+    if (Object.prototype.hasOwnProperty.call(obj, aliases[i]))
+      return obj[aliases[i]];
   }
-  return '';
+  return "";
 }
 
 function splitList_(value) {
-  return String(value || '')
-    .split(',')
-    .map(x => String(x).trim())
+  return String(value || "")
+    .split(",")
+    .map((x) => String(x).trim())
     .filter(Boolean);
 }
 
 function splitMultiSelect_(value) {
-  return String(value || '')
-    .split(',')
-    .map(x => String(x).trim())
+  return String(value || "")
+    .split(",")
+    .map((x) => String(x).trim())
     .filter(Boolean)
-    .filter(x => x.toLowerCase() !== 'none' && x.toLowerCase() !== 'no preference');
+    .filter(
+      (x) => x.toLowerCase() !== "none" && x.toLowerCase() !== "no preference",
+    );
 }
 
 function uniqueList_(arr) {
   const seen = {};
   const out = [];
-  arr.forEach(item => {
+  arr.forEach((item) => {
     const key = String(item);
     if (!seen[key]) {
       seen[key] = true;
@@ -688,24 +999,26 @@ function uniqueList_(arr) {
 }
 
 function normalizeCourseCode_(value) {
-  const text = String(value || '')
+  const text = String(value || "")
     .toUpperCase()
-    .replace(/\s+/g, ' ')
+    .replace(/\s+/g, " ")
     .trim();
 
   const match = text.match(/^([A-Z]{2,4}\s*\d+[A-Z]?)/);
-  return match ? match[1].replace(/\s+/g, ' ').trim() : text;
+  return match ? match[1].replace(/\s+/g, " ").trim() : text;
 }
 
 function normalizeTimeSlot_(value) {
-  return String(value || '')
-    .replace(/\s+/g, ' ')
+  return String(value || "")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
 function normalizeBoolean_(value) {
-  const v = String(value || '').trim().toUpperCase();
-  return v === 'TRUE' || v === 'YES' || v === 'Y' || v === '1';
+  const v = String(value || "")
+    .trim()
+    .toUpperCase();
+  return v === "TRUE" || v === "YES" || v === "Y" || v === "1";
 }
 
 function getOrCreateSheet_(ss, name) {
@@ -714,13 +1027,65 @@ function getOrCreateSheet_(ss, name) {
 
 function mustGetSheet_(ss, name) {
   const sheet = ss.getSheetByName(name);
-  if (!sheet) throw new Error('Missing sheet: ' + name);
+  if (!sheet) throw new Error("Missing sheet: " + name);
   return sheet;
 }
 
 function styleOutputSheet_(sheet) {
   if (sheet.getLastRow() === 0 || sheet.getLastColumn() === 0) return;
-  sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight('bold');
+  sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight("bold");
   sheet.setFrozenRows(1);
   sheet.autoResizeColumns(1, sheet.getLastColumn());
+}
+
+function generateConflictSummary() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const conflictSheet = ss.getSheetByName("Conflicts");
+  if (!conflictSheet || conflictSheet.getLastRow() < 2) {
+    SpreadsheetApp.getUi().alert(
+      "No conflicts found. Run Generate Schedule first.",
+    );
+    return;
+  }
+
+  const rows = sheetToObjects_(conflictSheet);
+  const counts = {
+    NO_ELIGIBLE_FACULTY: 0,
+    MAX_LOAD_REACHED: 0,
+    TIME_CONFLICT: 0,
+    ALL_SLOTS_BLOCKED: 0,
+    NO_VALID_COMBINATION: 0,
+  };
+
+  rows.forEach((r) => {
+    const type = String(r["conflictType"] || "").trim();
+    if (counts.hasOwnProperty(type)) counts[type]++;
+    else counts["NO_VALID_COMBINATION"]++;
+  });
+
+  const summarySheet = getOrCreateSheet_(ss, "Conflict_Summary");
+  summarySheet.clear();
+  summarySheet.getRange(1, 1, 1, 2).setValues([["conflictType", "count"]]);
+
+  const summaryRows = Object.entries(counts).map(([type, count]) => [
+    type,
+    count,
+  ]);
+  summarySheet.getRange(2, 1, summaryRows.length, 2).setValues(summaryRows);
+
+  // Color-code by severity
+  const colorMap = {
+    NO_ELIGIBLE_FACULTY: "#F4CCCC", // red — needs Eligibility sheet fix
+    MAX_LOAD_REACHED: "#FCE8B2", // yellow — adjust maxLoad
+    TIME_CONFLICT: "#FFF2CC", // light yellow — slot overlap
+    ALL_SLOTS_BLOCKED: "#FCE8B2", // yellow — availability too narrow
+    NO_VALID_COMBINATION: "#D9EAD3", // green — minor, mixed causes
+  };
+
+  summaryRows.forEach((row, i) => {
+    const color = colorMap[row[0]] || "#FFFFFF";
+    summarySheet.getRange(i + 2, 1, 1, 2).setBackground(color);
+  });
+
+  styleOutputSheet_(summarySheet);
 }
