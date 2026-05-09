@@ -47,6 +47,7 @@ This PoC demonstrates:
 ## Live PoC
 
 Google Sheet (Scheduler): https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/edit?usp=sharing
+
 Google Form (Input): https://forms.gle/BSXZEJVfRYdtAs1t9
 
 Use the form to submit sample responses, then run the scheduler from the Sheet menu (see **Running the PoC** section).
@@ -72,6 +73,16 @@ git clone https://github.com/SJSU-CMPE-195/group-project-team-67.git
 cd schedulr_apps_script
 clasp pull
 ```
+
+## Apps Script Setup
+
+This project uses `clasp` to sync local code with Google Apps Script.
+
+You must create a `.clasp.json` file in the **root directory** of the project.
+
+### Quick Setup:
+
+Run:
 
 ## Running the PoC
 
