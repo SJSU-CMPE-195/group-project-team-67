@@ -82,7 +82,39 @@ You must create a `.clasp.json` file in the **root directory** of the project.
 
 ### Quick Setup:
 
-Run:
+1. Run:
+
+**Mac/Linux:**
+
+```bash
+cp .clasp.json.txt .clasp.json
+```
+
+**Windows (PowerShell):**
+
+```bash
+Copy-Item .clasp.json.txt .clasp.json
+```
+
+2. Open the new `.clasp.json` file
+
+3. Replace the placeholder with the Apps Script ID
+
+To get the script ID:
+
+- Open the Google Sheet
+- Go to **Extensions -> Apps Script**
+- Click **Project Settings**
+- Copt the **Script ID**
+
+Example `.clasp.json` file:
+
+```json
+{
+  "scriptId": "YOUR_SCRIPT_ID_HERE",
+  "rootDir": "schedulr_apps_script"
+}
+```
 
 ## Running the PoC
 
