@@ -7,7 +7,7 @@ function onOpen() {
     .addItem("Build faculty sheet", "buildFacultySheet")
     .addItem("Build eligibility sheet", "buildEligibilitySheet")
     .addItem("Generate schedule", "generateSchedule")
-    .addItem("Generate course overview", "generateCourseOverview")
+    // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
     .addItem("Generate conflict summary", "generateConflictSummary")
     .addItem("Validate schedule", "validateSchedule")
     .addToUi();
@@ -194,7 +194,6 @@ function generateSchedule() {
   // Auto-build missing/empty Faculty and Eligibility
   const facultySheet = ensureFacultySheetReady_(ss, rawSheet);
   const eligibilitySheet = ensureEligibilitySheetReady_(ss, rawSheet);
-  const timeSlotSheet = ss.getSheetByName("TimeSlots");
   const actualPrefSheet =
     ss.getSheetByName("Cleaned_Preferences") ||
     ss.getSheetByName("Preferences");
@@ -203,7 +202,7 @@ function generateSchedule() {
   const faculty = getNormalizedFaculty_(facultySheet, actualPrefSheet);
   const eligibility = getNormalizedEligibility_(eligibilitySheet);
   const preferences = getNormalizedPreferences_(actualPrefSheet, faculty);
-  const timeSlots = getNormalizedTimeSlots_(timeSlotSheet);
+  const timeSlots = getNormalizedTimeSlots_();
 
   if (!courses.length) throw new Error("Courses sheet has no usable rows.");
   if (!faculty.length) throw new Error("Faculty sheet has no usable rows.");
@@ -384,10 +383,9 @@ function generateSchedule() {
     ],
     conflictRows,
   );
-
-  generateCourseOverview();
 }
 
+/* dont need this for now
 function generateCourseOverview() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const outputSheet = getOrCreateSheet_(ss, "Course_Overview");
@@ -471,6 +469,7 @@ function generateCourseOverview() {
 
   styleOutputSheet_(outputSheet);
 }
+*/
 
 function getNormalizedCourses_(sheet) {
   const rows = sheetToObjects_(sheet);
@@ -508,6 +507,7 @@ function getNormalizedCourses_(sheet) {
       ),
       allowedTimeSlots: splitList_(
         pickField_(r, [
+          "valid_class_times",
           "allowedTimeSlots",
           "AllowedTimeSlots",
           "allowedSlots",
@@ -634,7 +634,7 @@ function getNormalizedPreferences_(sheet, facultyList) {
     .filter((r) => r.facultyId && r.courseCode);
 }
 
-function getNormalizedTimeSlots_(sheet) {
+function getNormalizedTimeSlots_() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const coursesSheet = ss.getSheetByName("Courses");
   if (!coursesSheet) return [];
@@ -1350,7 +1350,7 @@ function importScraperCSV() {
       normalizeCourseCode_(r[codeIdx]),
       String(r[titleIdx] || "").trim(),
       Number(r[sectionsIdx] || 1),
-      String(r[3] || "").trim(),
+      String(r[headers.indexOf("valid_class_times")] || "").trim(),
       "Spring",
     ]);
 
