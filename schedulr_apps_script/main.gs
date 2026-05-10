@@ -139,7 +139,7 @@ function buildEligibilitySheet() {
   const data = rawSheet.getDataRange().getValues();
 
   eligibilitySheet.clear();
-  eligibilitySheet.appendRow(["facultyEmail", "courseCode", "eligible"]);
+  eligibilitySheet.appendRow(["email", "courseCode", "eligible"]);
   if (data.length < 2) {
     styleOutputSheet_(eligibilitySheet);
     return;
@@ -209,7 +209,6 @@ function generateSchedule() {
   const conflictRows = [];
   const facultyLoad = {};
   const facultyAssignments = {};
-  const slotUsage = {};
 
   faculty.forEach((f) => {
     facultyLoad[f.facultyId] = 0;
@@ -236,16 +235,10 @@ function generateSchedule() {
           continue;
         }
 
-        if (isCourseSlotTaken_(course.courseCode, term, slot, slotUsage)) {
-          rejectionNotes.push("Course already uses " + slot + " in " + term);
-          continue;
-        }
-
         const candidates = faculty
           .filter((f) =>
             isEligible_(f.facultyId, course.courseCode, eligibility),
           )
-          .filter((f) => isAvailableForTerm_(f, term))
           .filter((f) => !isUnavailableForSlot_(f, slot))
           .filter((f) => !hasTimeConflict_(f, term, slot, facultyAssignments))
           .filter((f) => !isOverloaded_(f, facultyLoad))
@@ -295,12 +288,6 @@ function generateSchedule() {
         courseCode: course.courseCode,
         section: course.section,
       });
-      markCourseSlotUsed_(
-        course.courseCode,
-        bestChoice.term,
-        bestChoice.timeSlot,
-        slotUsage,
-      );
 
       scheduleRows.push([
         bestChoice.term,
@@ -353,7 +340,7 @@ function generateSchedule() {
       "courseCode",
       "courseName",
       "section",
-      "facultyId",
+      "email",
       "facultyName",
       "timeSlot",
       "status",
@@ -511,6 +498,15 @@ function getNormalizedCourses_(sheet) {
       ).map(normalizeTimeSlot_),
       category: String(pickField_(r, ["category", "Category"]) || "").trim(),
     }))
+    .map((r) => {
+      // These courses have multiple sections at the same time
+      // but are taught at the same time by one professor
+      const singleSectionCourses = ["CMPE 195A", "CMPE 195B"];
+      if (singleSectionCourses.includes(r.courseCode)) {
+        r.sectionsNeeded = 1;
+      }
+      return r;
+    })
     .filter((r) => r.courseCode && Number(r.sectionsNeeded || 0) > 0);
 }
 
@@ -526,18 +522,7 @@ function getNormalizedFaculty_(sheet, prefSheet) {
       const facultyName = String(
         pickField_(r, ["facultyName", "FacultyName", "name", "Name"]) || "",
       ).trim();
-      const facultyId = String(
-        pickField_(r, [
-          "facultyId",
-          "FacultyId",
-          "id",
-          "ID",
-          "email",
-          "Email",
-        ]) ||
-          email ||
-          facultyName,
-      ).trim();
+      const facultyId = email || facultyName;
       const fallbackMax =
         email && maxFromPrefs[email] ? maxFromPrefs[email] : "";
 
@@ -545,9 +530,6 @@ function getNormalizedFaculty_(sheet, prefSheet) {
         facultyId: facultyId,
         facultyName: facultyName || facultyId,
         email: email,
-        availableTerms: splitList_(
-          pickField_(r, ["availableTerms", "AvailableTerms", "terms", "Terms"]),
-        ),
         unavailableSlots: splitList_(
           pickField_(r, [
             "unavailableSlots",
@@ -570,9 +552,7 @@ function getNormalizedEligibility_(sheet) {
   const rows = sheetToObjects_(sheet);
   return rows
     .map((r) => ({
-      facultyId: String(
-        pickField_(r, ["facultyId", "FacultyId", "id", "ID", "email", "Email"]),
-      ).trim(),
+      facultyId: String(pickField_(r, ["email", "Email"])).trim(),
       courseCode: normalizeCourseCode_(
         pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
       ),
@@ -775,11 +755,6 @@ function isEligible_(facultyId, courseCode, eligibilityRows) {
   );
 }
 
-function isAvailableForTerm_(faculty, term) {
-  if (!faculty.availableTerms.length) return true;
-  return faculty.availableTerms.includes(String(term).trim());
-}
-
 function isUnavailableForSlot_(faculty, timeSlot) {
   if (!timeSlot) return false;
   return faculty.unavailableSlots.includes(normalizeTimeSlot_(timeSlot));
@@ -799,26 +774,6 @@ function hasTimeConflict_(faculty, term, timeSlot, facultyAssignments) {
       String(a.term).trim() === String(term).trim() &&
       normalizeTimeSlot_(a.timeSlot) === normalizeTimeSlot_(timeSlot),
   );
-}
-
-function isCourseSlotTaken_(courseCode, term, timeSlot, slotUsage) {
-  const key =
-    String(term).trim() +
-    "|" +
-    normalizeCourseCode_(courseCode) +
-    "|" +
-    normalizeTimeSlot_(timeSlot);
-  return slotUsage[key] === true;
-}
-
-function markCourseSlotUsed_(courseCode, term, timeSlot, slotUsage) {
-  const key =
-    String(term).trim() +
-    "|" +
-    normalizeCourseCode_(courseCode) +
-    "|" +
-    normalizeTimeSlot_(timeSlot);
-  slotUsage[key] = true;
 }
 
 function collapseReasons_(reasons) {
@@ -1079,7 +1034,7 @@ function validateSchedule() {
 
   scheduleRows.forEach((row, i) => {
     const rowNum = i + 2; // account for header row
-    const facultyId = String(row["facultyId"] || "").trim();
+    const facultyId = String(row["email"] || "").trim();
     const courseCode = normalizeCourseCode_(row["courseCode"] || "");
     const timeSlot = normalizeTimeSlot_(row["timeSlot"] || "");
     const term = String(row["term"] || "").trim();
@@ -1115,7 +1070,7 @@ function validateSchedule() {
     // Check 2: eligibility
     const eligible = eligibilityRows.some(
       (e) =>
-        String(e["facultyId"]).trim() === facultyId &&
+        String(e["email"] || "").trim() === facultyId &&
         normalizeCourseCode_(e["courseCode"]) === courseCode &&
         normalizeBoolean_(e["eligible"]) === true,
     );
@@ -1141,7 +1096,7 @@ function validateSchedule() {
   if (facultySheet && facultySheet.getLastRow() > 1) {
     const facultyRows = sheetToObjects_(facultySheet);
     facultyRows.forEach((f) => {
-      const facultyId = String(f["facultyId"] || "").trim();
+      const facultyId = String(f["email"] || "").trim();
       const maxLoad = Number(f["maxLoad"] || 0);
       const assigned = facultyLoadMap[facultyId] || 0;
       if (maxLoad > 0 && assigned > maxLoad) {
@@ -1191,7 +1146,7 @@ function validateSchedule() {
       [
         "scheduleRow",
         "courseCode",
-        "facultyId",
+        "email",
         "result",
         "checkType",
         "description",
