@@ -1,8 +1,6 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Schedulr")
-    .addItem("Test connection", "testSheetConnection")
-    .addSeparator()
     .addItem("Import scraper CSV -> Courses", "importScraperCSV")
     .addSeparator()
     .addItem("Clean preferences", "cleanPreferences")
@@ -13,12 +11,6 @@ function onOpen() {
     .addItem("Generate conflict summary", "generateConflictSummary")
     .addItem("Validate schedule", "validateSchedule")
     .addToUi();
-}
-
-function testSheetConnection() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const sheet = ss.getActiveSheet();
-  sheet.getRange("A1").setValue("Apps Script connected");
 }
 
 function cleanPreferences() {
@@ -643,37 +635,28 @@ function getNormalizedPreferences_(sheet, facultyList) {
 }
 
 function getNormalizedTimeSlots_(sheet) {
-  const defaults = [
-    "MW 9:00-10:15",
-    "MW 10:30-11:45",
-    "MW 12:00-1:15",
-    "MW 1:30-2:45",
-    "MW 3:00-4:15",
-    "TTh 9:00-10:15",
-    "TTh 10:30-11:45",
-    "TTh 12:00-1:15",
-    "TTh 1:30-2:45",
-    "TTh 3:00-4:15",
-    "M 6:00-8:45",
-    "T 6:00-8:45",
-    "W 6:00-8:45",
-    "Th 6:00-8:45",
-  ];
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const coursesSheet = ss.getSheetByName("Courses");
+  if (!coursesSheet) return [];
 
-  if (!sheet || sheet.getLastRow() < 2) {
-    return defaults;
-  }
+  const rows = sheetToObjects_(coursesSheet);
+  const slots = [];
 
-  const rows = sheetToObjects_(sheet);
-  const slots = rows
-    .map((r) =>
-      normalizeTimeSlot_(
-        pickField_(r, ["timeSlot", "TimeSlot", "slot", "Slot"]),
-      ),
-    )
-    .filter(Boolean);
+  rows.forEach((r) => {
+    const times = String(
+      pickField_(r, ["valid_class_times", "allowedTimeSlots"]) || "",
+    ).trim();
+    if (!times) return;
+    times
+      .split(",")
+      .map((t) => t.trim())
+      .filter(Boolean)
+      .forEach((t) => {
+        if (!slots.includes(t)) slots.push(t);
+      });
+  });
 
-  return slots.length ? uniqueList_(slots) : defaults;
+  return slots;
 }
 
 function compareExpandedCourses_(a, b, eligibility, preferences) {
