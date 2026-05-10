@@ -1,19 +1,19 @@
-course,course title,section_amount,amount_of_open_seats
-CMPE 102,Assembly Language Programming,4,21
-CMPE 120,Computer Organization and Architecture,2,14
-CMPE 131,Software Engineering I,4,12
-CMPE 133,Software Engineering II,0,0
-CMPE 148,Computer Networks I,3,28
-CMPE 165,Software Engineering Process Management,2,2
-CMPE 172,Enterprise Software Platforms,2,12
-CMPE 187,Software Quality Engineering,2,0
-CMPE 195A,Senior Design Project I,3,3
-CMPE 195B,Senior Design Project II,3,0
-ENGR 195A,Global and Social Issues in Engineering,2,94
-ENGR 195B,Global and Social Issues in Engineering,2,97
-CS 146,Data Structures and Algorithms,6,20
-CS 149,Operating Systems,3,1
-CS 151,Object-Oriented Design,4,3
-CS 157A,Introduction to Database Management Systems,4,4
-CS 166,Information Security,2,0
-ISE 164,Computer and Human Interaction,2,4
+course,course_title,section_amount,valid_class_times
+CMPE 102,Assembly Language Programming,4,"MW 01:30PM-02:45PM, MW 10:30AM-11:45AM, TTh 08:00AM-09:15AM, TTh 12:00PM-01:15PM"
+CMPE 120,Computer Organization and Architecture,2,"MW 01:30PM-02:45PM, MW 04:30PM-05:45PM"
+CMPE 131,Software Engineering I,4,"T 06:00PM-08:45PM, TTh 12:00PM-01:15PM, Th 06:00PM-08:45PM, W 06:00PM-08:45PM"
+CMPE 133,Software Engineering II,0,
+CMPE 148,Computer Networks I,3,"M 06:00PM-08:45PM, MW 07:30AM-08:45AM, T 06:00PM-08:45PM"
+CMPE 165,Software Engineering Process Management,2,"M 06:00PM-08:45PM, MW 10:30AM-11:45AM"
+CMPE 172,Enterprise Software Platforms,2,"MW 01:30PM-02:45PM, MW 03:00PM-04:15PM"
+CMPE 187,Software Quality Engineering,2,"M 06:00PM-08:45PM, MW 03:00PM-04:15PM"
+CMPE 195A,Senior Design Project I,3,F 10:30AM-01:15PM
+CMPE 195B,Senior Design Project II,3,F 10:30AM-01:15PM
+ENGR 195A,Global and Social Issues in Engineering,2,"F 01:30PM-02:45PM, F 12:00PM-01:15PM"
+ENGR 195B,Global and Social Issues in Engineering,2,"F 01:30PM-02:45PM, F 10:30AM-11:45AM"
+CS 146,Data Structures and Algorithms,6,"MW 06:00PM-07:15PM, MW 07:30AM-08:45AM, MW 09:00AM-10:15AM, MW 10:30AM-11:45AM"
+CS 149,Operating Systems,3,"MW 04:30PM-05:45PM, MW 09:00AM-10:15AM, MW 10:30AM-11:45AM"
+CS 151,Object-Oriented Design,4,"MW 04:30PM-05:45PM, TTh 06:00PM-07:15PM, TTh 09:00AM-10:15AM"
+CS 157A,Introduction to Database Management Systems,4,"TTh 03:00PM-04:15PM, TTh 04:30PM-05:45PM, TTh 06:00PM-07:15PM, TTh 07:30PM-08:45PM"
+CS 166,Information Security,2,"MW 03:00PM-04:15PM, TTh 04:30PM-05:45PM"
+ISE 164,Computer and Human Interaction,2,"T 06:00PM-08:45PM, W 06:00PM-08:45PM"
