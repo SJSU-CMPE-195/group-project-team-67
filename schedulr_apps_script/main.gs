@@ -94,10 +94,8 @@ function buildFacultySheet() {
 
   facultySheet.clear();
   facultySheet.appendRow([
-    "facultyId",
     "facultyName",
     "email",
-    "availableTerms",
     "unavailableSlots",
     "maxLoad",
   ]);
@@ -124,10 +122,8 @@ function buildFacultySheet() {
     seen[facultyId] = true;
 
     facultySheet.appendRow([
-      facultyId,
       facultyName,
       email,
-      "Spring",
       unavailableSlots.join(", "),
       maxLoad,
     ]);
@@ -143,8 +139,7 @@ function buildEligibilitySheet() {
   const data = rawSheet.getDataRange().getValues();
 
   eligibilitySheet.clear();
-  eligibilitySheet.appendRow(["facultyId", "courseCode", "eligible"]);
-
+  eligibilitySheet.appendRow(["facultyEmail", "courseCode", "eligible"]);
   if (data.length < 2) {
     styleOutputSheet_(eligibilitySheet);
     return;
@@ -171,7 +166,7 @@ function buildEligibilitySheet() {
       if (seen[key]) return;
       seen[key] = true;
 
-      eligibilitySheet.appendRow([facultyId, courseCode, true]);
+      eligibilitySheet.appendRow([email, courseCode, true]);
     });
   }
 
