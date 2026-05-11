@@ -4,12 +4,12 @@
 
 ## Group 7
 
-| Name   | GitHub                                                 | Email                      |
-| ------ | ------------------------------------------------------ | -------------------------- |
-| Name 1 | [@nick-mama](https://github.com/nick-mama)             | nickjason.mamaoag@sjsu.edu |
-| Name 2 | [@vancednguyen](https://github.com/vancednguyen)       | vance.nguyen@sjsu.edu      |
-| Name 3 | [@YashSat21](https://github.com/YashSat21)             | yashas.satheesh@sjsu.edu   |
-| Name 4 | [@michaelnathykim](https://github.com/michaelnathykim) | michael.n.kim@sjsu.edu     |
+| Name    | GitHub                                                 | Email                      |
+| ------- | ------------------------------------------------------ | -------------------------- |
+| Nick    | [@nick-mama](https://github.com/nick-mama)             | nickjason.mamaoag@sjsu.edu |
+| Vance   | [@vancednguyen](https://github.com/vancednguyen)       | vance.nguyen@sjsu.edu      |
+| Yashas  | [@YashSat21](https://github.com/YashSat21)             | yashas.satheesh@sjsu.edu   |
+| Michael | [@michaelnathykim](https://github.com/michaelnathykim) | michael.n.kim@sjsu.edu     |
 
 **Advisor:** Professor Rojas
 
@@ -54,6 +54,8 @@ Use the form to submit sample responses, then run the scheduler from the Sheet m
 
 ## Prerequisites
 
+### Apps Script/clasp
+
 - Google account
 - Google Sheets
 - Node.js (for clasp)
@@ -66,10 +68,28 @@ npm install -g @google/clasp
 clasp login
 ```
 
+### Python Scraper
+
+- Python 3.8+
+- pip
+
+Install dependencies:
+
+```bash
+cd sjsu_data_scraper
+pip install requests beautifulsoup4 pandas lxml
+```
+
 ## Installation
 
 ```bash
 git clone https://github.com/SJSU-CMPE-195/group-project-team-67.git
+cd group-project-team-67
+```
+
+To pull the latest Apps Script code:
+
+```bash
 cd schedulr_apps_script
 clasp pull
 ```
@@ -92,7 +112,7 @@ cp .clasp.json.txt .clasp.json
 
 **Windows (PowerShell):**
 
-```bash
+```powershell
 Copy-Item .clasp.json.txt .clasp.json
 ```
 
@@ -120,18 +140,39 @@ Example `.clasp.json` file:
 
 1. Open the connected Google Sheet
 2. Submit sample responses through the Google Form
-3. In the Sheet menu, click **Schedulr** and run:
+3. In the Sheet menu, click **Schedulr** and run the steps in order:
 
-- Clean preferences
-- Build faculty sheet
-- Build eligibility sheet
-- Generate schedule
+| Step | Menu Item                 | Description                                                           |
+| ---- | ------------------------- | --------------------------------------------------------------------- |
+| 1    | Import scraper CSV        | Load course data from the SJSU scraper CSV via Drive ID               |
+| 2    | Clean preferences         | Parse and normalize raw Form responses                                |
+| 3    | Build faculty sheet       | Extract faculty availability and load limits                          |
+| 4    | Build eligibility sheet   | Map which faculty are eligible for which courses                      |
+| 5    | Generate schedule         | Run the constraint-based scheduling algorithm                         |
+| 6    | Generate conflict summary | Summarize unresolved conflicts by type                                |
+| 7    | Validate schedule         | Check the output for double-bookings, overloads, and missing sections |
 
-4. View outputs in:
+4. View outputs in the following sheets:
 
-- ScheduleOutput
-- Conflicts
-- Course_Overview
+| Sheet            | Contents                                              |
+| ---------------- | ----------------------------------------------------- |
+| ScheduleOutput   | Assigned professors, courses, and time slots          |
+| Conflicts        | Courses that could not be assigned and the reasons    |
+| Conflict_Summary | Conflict counts grouped by type, color-coded          |
+| Validation_Log   | Per-row validation results (eligibility, load, slots) |
+
+## Running the Scraper
+
+The scraper pulls current CMPE/SE course data from the SJSU catalog and class schedule.
+
+```bash
+cd sjsu_data_scraper
+python sjsu_class_scraper.py
+```
+
+Output: `sjsu_major_courses_spring_2026.csv`
+
+Upload the file to Google Drive, then use **Import scraper CSV** in the Schedulr menu and paste the Drive file ID when prompted.
 
 ## Demo
 
@@ -160,9 +201,11 @@ Shows courses that could not be assigned due to constraints such as time conflic
 
 ## What's Next (195B)
 
+- Build web-based schedule visualization (React or Next.js)
+- Add JSON export from Apps Script to feed the frontend
 - Improve scheduling algorithm (constraint optimization)
 - Add UI dashboard
-- Integrate real historical data
+- Integrate real historical course data
 - Add room assignment
 - Improve preference weighting system
 
@@ -170,10 +213,15 @@ Shows courses that could not be assigned due to constraints such as time conflic
 
 ```
 .
-├── schedulr_apps_script/ # Apps Script scheduler
-├── sjsu_data_scraper/ # Python scraper
-├── docs/ # Screenshots
-├── README.md
+├── schedulr_apps_script/ # Apps Script scheduler (main.gs + appsscript.json)
+├── sjsu_data_scraper/ # Python scraper + output CSV
+├── docs/
+│   └── screenshots/        # Demo screenshots
+├── src/                    # Frontend (195B — in development)
+├── tests/                  # Tests (in development)
+├── .clasp.json.txt         # Clasp config template (copy to .clasp.json)
+├── .gitignore
+└── README.md
 ```
 
 ## License
