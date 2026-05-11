@@ -10,20 +10,20 @@
 
 ## Advisor Meetings
 
-| Date    | Duration | Format             | Attendees              | Summary                                        | Action Items                                                               |
-| ------- | -------- | ------------------ | ---------------------- | ---------------------------------------------- | -------------------------------------------------------------------------- |
-| 3/10/26 | 40 min   | Remote             | Everyone               | Idea of project, problem, milestones, tasks.   | Start report, think of features/constraints (MVP).                         |
-| 3/20/26 | 40 min   | Remote             | Vance, Yashas, Michael | Discussed updates, checkpoints, and next steps | Incorperate spreadsheet preferences, output spreadsheet incorperate system |
-| 4/10/26 | 20 min   | In-person / Remote | Everyone                 |  Discussed updates, checkpoints, and next steps                                             | sync all different appscript functions into one sheet, implementation of visualizing a schedule, and to contact further for course dataset from previous semesters                                                                           |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
-|         |          | In-person / Remote |                        |                                                |                                                                            |
+| Date    | Duration | Format             | Attendees              | Summary                                        | Action Items                                                                                                                                                       |
+| ------- | -------- | ------------------ | ---------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| 3/10/26 | 40 min   | Remote             | Everyone               | Idea of project, problem, milestones, tasks.   | Start report, think of features/constraints (MVP).                                                                                                                 |
+| 3/20/26 | 40 min   | Remote             | Vance, Yashas, Michael | Discussed updates, checkpoints, and next steps | Incorporate spreadsheet preferences, output spreadsheet incorporate system                                                                                         |
+| 4/10/26 | 20 min   | In-person / Remote | Everyone               | Discussed updates, checkpoints, and next steps | sync all different appscript functions into one sheet, implementation of visualizing a schedule, and to contact further for course dataset from previous semesters |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 
 ---
 
@@ -134,13 +134,13 @@
 **Discussion:**
 
 - Updates
-- Chekpoint
+- Checkpoint
 - Next steps
 
 **Action Items:**
 
-- [X] [Incorperate Spreadsheet Preferences] - [2 members] - [4/6/2026]
-- [X] [Output changes in the spreadsheet so they can be inputted into the system] - [1 member] - [4/6/2026]
+- [x] [Incorporate Spreadsheet Preferences] - [2 members] - [4/6/2026]
+- [x] [Output changes in the spreadsheet so they can be inputted into the system] - [1 member] - [4/6/2026]
 - [ ] [Figuring out number of sections] - [1 member] - [4/6/2026]
 
 ---
@@ -163,12 +163,12 @@
 
 **Action Items:**
 
-- [X] [Set up data collection pipeline (Google Form + define fields + link to Sheets)] - [Nick] - [End of Spring Break]
-- [X] [Process and structure collected data for scheduling (cleaning, transformation, test dataset)] - [Nick] - [End of Spring Break]
-- [ ] [Determine required course sections using demand data] - [Vance] - [End of Spring Break]
-- [ ] [Organize and analyze course data (spreadsheet + optional parsing script)] - [Vance] - [End of Spring Break]
-- [ ] [Build core schedule generator (assign courses, terms, faculty)] - [Yashas] - [End of Spring Break]
-- [ ] [Implement constraint handling (conflicts, preferences, availability, overloads)] - [Yashas] - [End of Spring Break]
+- [x] [Set up data collection pipeline (Google Form + define fields + link to Sheets)] - [Nick] - [End of Spring Break]
+- [x] [Process and structure collected data for scheduling (cleaning, transformation, test dataset)] - [Nick] - [End of Spring Break]
+- [x] [Determine required course sections using demand data] - [Vance] - [End of Spring Break]
+- [x] [Organize and analyze course data (spreadsheet + optional parsing script)] - [Vance] - [End of Spring Break]
+- [x] [Build core schedule generator (assign courses, terms, faculty)] - [Yashas] - [End of Spring Break]
+- [x] [Implement constraint handling (conflicts, preferences, availability, overloads)] - [Yashas] - [End of Spring Break]
 
 ---
 
@@ -178,28 +178,29 @@
 
 - Everyone
 
-## **Discussion:**
+**Discussion:**
 
 - Talked about clasp integration
 - Duties for each member
-- Went though induvidual project assignments
+- Went though individual project assignments
 
-## **Decisions:**
+**Decisions:**
 
 - Tasks for each member
 
 **Action Items:**
 
-- [ ] [Integration among everyone's project] - [Everyone] - [Next advisor meeting]
+- [x] [Integration among everyone's project] - [Everyone] - [Next advisor meeting]
+
 ---
 
 ### [Date] - [Advisor/Team] Meeting
 
 **Attendees:**
 
-## **Discussion:**
+**Discussion:**
 
-## **Decisions:**
+**Decisions:**
 
 **Action Items:**
 
@@ -212,9 +213,9 @@
 
 **Attendees:**
 
-## **Discussion:**
+**Discussion:**
 
-## **Decisions:**
+**Decisions:**
 
 **Action Items:**
 
