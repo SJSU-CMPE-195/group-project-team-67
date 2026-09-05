@@ -14,8 +14,8 @@
 | ------- | -------- | ------------------ | ---------------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
 | 3/10/26 | 40 min   | Remote             | Everyone               | Idea of project, problem, milestones, tasks.   | Start report, think of features/constraints (MVP).                                                                                                                 |
 | 3/20/26 | 40 min   | Remote             | Vance, Yashas, Michael | Discussed updates, checkpoints, and next steps | Incorporate spreadsheet preferences, output spreadsheet incorporate system                                                                                         |
-| 4/10/26 | 20 min   | In-person / Remote | Everyone               | Discussed updates, checkpoints, and next steps | sync all different appscript functions into one sheet, implementation of visualizing a schedule, and to contact further for course dataset from previous semesters |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 4/10/26 | 20 min   | Remote             | Everyone               | Discussed updates, checkpoints, and next steps | sync all different appscript functions into one sheet, implementation of visualizing a schedule, and to contact further for course dataset from previous semesters |
+| 9/1/26  | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Create a prior history function that can view previous edits to the schedule, implement seat count if information is publicly accessible                           |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
@@ -194,18 +194,29 @@
 
 ---
 
-### [Date] - [Advisor/Team] Meeting
+### [9/1/2026] - [Advisor] Meeting
 
 **Attendees:**
 
+- Vance, Nick, Yashas
+
 **Discussion:**
 
+- Should be able to hover to see the previous change OR crossed out previous change
+- Make the color of that cell (e.g. red) when hovering
+- Show 2 or 3 different ways to see the changes between users
+- Like a smart tab OR a filter button to see changes
+  
 **Decisions:**
+
+- Show differences when a user edits a cell
+- Ignore format for now and work on changes for the next meeting
+- EXTRA: Implement the seat count for classes
 
 **Action Items:**
 
-- [ ] [Task] - [Owner] - [Due]
-- [ ] [Task] - [Owner] - [Due]
+- [ ] [Version History/Track Changes] - [Everyone] - [Next advisor meeting]
+- [ ] [Seat Count] - [Everyone] - [Next advisor meeting]
 
 ---
 
