@@ -9,8 +9,10 @@ function onOpen() {
     .addItem("Validate schedule", "validateSchedule")
     .addSeparator()
     .addItem("View Change Log", "showChangeLog")
+    .addItem("Clear Change Log", "clearChangeLog")
     .addItem("Jump to Next Change", "jumpToNextChange")
     .addItem("Accept All Changes", "acceptAllChanges")
+    .addItem("Revert to Original Changes", "revertAllChanges")
     .addToUi();
 }
 
@@ -972,6 +974,9 @@ function validateSchedule() {
  * - Three ways to review changes: (1) hover over any highlighted cell,
  *   (2) "View Change Log" for a full running audit trail, (3) "Jump to Next
  *   Change" to cycle through every flagged cell one at a time.
+ * - "Accept All Changes" clears highlights/notes and keeps the current
+ *   values. "Revert to Original Changes" restores each cell's prior value
+ *   (where captured) and then clears highlights/notes.
  * ========================================================================= */
 
 const CHANGE_LOG_SHEET_NAME = "Change_Log";
@@ -1052,7 +1057,7 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
     user,
     now,
   );
-  addPendingChange_(sheet.getName(), cell.getA1Notation());
+  addPendingChange_(sheet.getName(), cell.getA1Notation(), oldValue, isBulk);
 }
 
 function getEditingUser_() {
@@ -1106,35 +1111,42 @@ function clearTrackedChangesForSheet_(ss, sheetName) {
   const props = PropertiesService.getDocumentProperties();
   const raw = props.getProperty("pendingChanges");
   if (!raw) return;
-  const list = JSON.parse(raw);
-  const filtered = list.filter((id) => id.split("!")[0] !== sheetName);
+  const map = JSON.parse(raw);
+  const filtered = {};
+  Object.keys(map).forEach((id) => {
+    if (id.split("!")[0] !== sheetName) filtered[id] = map[id];
+  });
   props.setProperty("pendingChanges", JSON.stringify(filtered));
 }
 
-function addPendingChange_(sheetName, a1) {
+function addPendingChange_(sheetName, a1, rawOldValue, isBulk) {
   const props = PropertiesService.getDocumentProperties();
   const key = "pendingChanges";
   const raw = props.getProperty(key);
-  const list = raw ? JSON.parse(raw) : [];
+  const map = raw ? JSON.parse(raw) : {};
   const id = sheetName + "!" + a1;
-  if (list.indexOf(id) === -1) list.push(id);
-  props.setProperty(key, JSON.stringify(list));
+  map[id] = {
+    previousValue: isBulk ? null : rawOldValue,
+    isBulk: !!isBulk,
+  };
+  props.setProperty(key, JSON.stringify(map));
 }
 
 function jumpToNextChange() {
   const props = PropertiesService.getDocumentProperties();
   const raw = props.getProperty("pendingChanges");
-  const list = raw ? JSON.parse(raw) : [];
+  const map = raw ? JSON.parse(raw) : {};
+  const ids = Object.keys(map);
 
-  if (!list.length) {
+  if (!ids.length) {
     SpreadsheetApp.getUi().alert("No tracked changes found.");
     return;
   }
 
   let idx = Number(props.getProperty("pendingChangeIndex") || 0);
-  if (idx >= list.length) idx = 0;
+  if (idx >= ids.length) idx = 0;
 
-  const parts = list[idx].split("!");
+  const parts = ids[idx].split("!");
   const sheetName = parts[0];
   const a1 = parts[1];
 
@@ -1159,10 +1171,11 @@ function acceptAllChanges() {
 
   const props = PropertiesService.getDocumentProperties();
   const raw = props.getProperty("pendingChanges");
-  const list = raw ? JSON.parse(raw) : [];
+  const map = raw ? JSON.parse(raw) : {};
+  const ids = Object.keys(map);
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  list.forEach((id) => {
+  ids.forEach((id) => {
     const parts = id.split("!");
     const sheetName = parts[0];
     const a1 = parts[1];
@@ -1176,7 +1189,80 @@ function acceptAllChanges() {
 
   props.deleteProperty("pendingChanges");
   props.deleteProperty("pendingChangeIndex");
-  ui.alert("Accepted " + list.length + " change(s).");
+  ui.alert("Accepted " + ids.length + " change(s).");
+}
+
+function revertAllChanges() {
+  const ui = SpreadsheetApp.getUi();
+  const resp = ui.alert(
+    "Revert to original values?",
+    "This restores the value each tracked cell had before it was edited, then clears the highlight and note. Cells changed by a bulk edit (paste/fill) don't have a captured previous value, so those will just be cleared, not reverted.",
+    ui.ButtonSet.YES_NO,
+  );
+  if (resp !== ui.Button.YES) return;
+
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const map = raw ? JSON.parse(raw) : {};
+  const ids = Object.keys(map);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+
+  let reverted = 0;
+  let skipped = 0;
+
+  ids.forEach((id) => {
+    const parts = id.split("!");
+    const sheetName = parts[0];
+    const a1 = parts[1];
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return;
+
+    const range = sheet.getRange(a1);
+    const entry = map[id];
+
+    if (entry && !entry.isBulk) {
+      range.setValue(entry.previousValue);
+      reverted++;
+    } else {
+      skipped++;
+    }
+
+    range.setBackground(null);
+    range.clearNote();
+  });
+
+  props.deleteProperty("pendingChanges");
+  props.deleteProperty("pendingChangeIndex");
+
+  ui.alert(
+    "Reverted " +
+      reverted +
+      " cell(s) to their original value." +
+      (skipped > 0
+        ? " " +
+          skipped +
+          " cell(s) from bulk edits couldn't be reverted and were just cleared."
+        : ""),
+  );
+}
+
+function clearChangeLog() {
+  const ui = SpreadsheetApp.getUi();
+  const resp = ui.alert(
+    "Clear the Change Log?",
+    "This deletes every row in the Change_Log sheet. It does not affect the highlight colors or notes on tracked cells.",
+    ui.ButtonSet.YES_NO,
+  );
+  if (resp !== ui.Button.YES) return;
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet = getOrCreateChangeLogSheet_(ss);
+  const lastRow = logSheet.getLastRow();
+  if (lastRow > 1) {
+    logSheet.deleteRows(2, lastRow - 1);
+  }
+
+  ui.alert("Change Log cleared.");
 }
 
 function showChangeLog() {
