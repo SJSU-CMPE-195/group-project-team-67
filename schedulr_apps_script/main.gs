@@ -1,15 +1,16 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Schedulr")
-    .addItem("Import scraper CSV -> Courses", "importScraperCSV")
-    .addSeparator()
     .addItem("Clean preferences", "cleanPreferences")
     .addItem("Build faculty sheet", "buildFacultySheet")
-    .addItem("Build eligibility sheet", "buildEligibilitySheet")
     .addItem("Generate schedule", "generateSchedule")
     // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
     .addItem("Generate conflict summary", "generateConflictSummary")
     .addItem("Validate schedule", "validateSchedule")
+    .addSeparator()
+    .addItem("View Change Log", "showChangeLog")
+    .addItem("Jump to Next Change", "jumpToNextChange")
+    .addItem("Accept All Changes", "acceptAllChanges")
     .addToUi();
 }
 
@@ -132,47 +133,6 @@ function buildFacultySheet() {
   styleOutputSheet_(facultySheet);
 }
 
-function buildEligibilitySheet() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = mustGetSheet_(ss, "Form Responses 1");
-  const eligibilitySheet = getOrCreateSheet_(ss, "Eligibility");
-  const data = rawSheet.getDataRange().getValues();
-
-  eligibilitySheet.clear();
-  eligibilitySheet.appendRow(["email", "courseCode", "eligible"]);
-  if (data.length < 2) {
-    styleOutputSheet_(eligibilitySheet);
-    return;
-  }
-
-  const seen = {};
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-
-    const facultyName = String(row[1] || "").trim();
-    const email = String(row[2] || "")
-      .trim()
-      .toLowerCase();
-    const facultyId = email || facultyName;
-
-    const previouslyTaught = splitMultiSelect_(row[9]).map(
-      normalizeCourseCode_,
-    );
-
-    previouslyTaught.forEach((courseCode) => {
-      if (!courseCode) return;
-      const key = facultyId + "|" + courseCode;
-      if (seen[key]) return;
-      seen[key] = true;
-
-      eligibilitySheet.appendRow([email, courseCode, true]);
-    });
-  }
-
-  styleOutputSheet_(eligibilitySheet);
-}
-
 function generateSchedule() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
@@ -186,23 +146,19 @@ function generateSchedule() {
     cleanPreferences();
   }
 
-  // Auto-build missing/empty Faculty and Eligibility
+  // Auto-build missing/empty Faculty sheet
   const facultySheet = ensureFacultySheetReady_(ss, rawSheet);
-  const eligibilitySheet = ensureEligibilitySheetReady_(ss, rawSheet);
   const actualPrefSheet =
     ss.getSheetByName("Cleaned_Preferences") ||
     ss.getSheetByName("Preferences");
 
   const courses = getNormalizedCourses_(coursesSheet);
   const faculty = getNormalizedFaculty_(facultySheet, actualPrefSheet);
-  const eligibility = getNormalizedEligibility_(eligibilitySheet);
   const preferences = getNormalizedPreferences_(actualPrefSheet, faculty);
   const timeSlots = getNormalizedTimeSlots_();
 
   if (!courses.length) throw new Error("Courses sheet has no usable rows.");
   if (!faculty.length) throw new Error("Faculty sheet has no usable rows.");
-  if (!eligibility.length)
-    throw new Error("Eligibility sheet has no usable rows.");
   if (!timeSlots.length) throw new Error("No usable time slots found.");
 
   const scheduleRows = [];
@@ -216,7 +172,7 @@ function generateSchedule() {
   });
 
   const expandedCourses = expandCourses_(courses).sort((a, b) =>
-    compareExpandedCourses_(a, b, eligibility, preferences),
+    compareExpandedCourses_(a, b, preferences),
   );
 
   expandedCourses.forEach((course) => {
@@ -236,9 +192,6 @@ function generateSchedule() {
         }
 
         const candidates = faculty
-          .filter((f) =>
-            isEligible_(f.facultyId, course.courseCode, eligibility),
-          )
           .filter((f) => !isUnavailableForSlot_(f, slot))
           .filter((f) => !hasTimeConflict_(f, term, slot, facultyAssignments))
           .filter((f) => !isOverloaded_(f, facultyLoad))
@@ -306,14 +259,8 @@ function generateSchedule() {
         ),
       ]);
     } else {
-      const candidateFaculty = faculty
-        .filter((f) => isEligible_(f.facultyId, course.courseCode, eligibility))
-        .map((f) => f.facultyName)
-        .join(", ");
-
-      const eligibleCount = faculty.filter((f) =>
-        isEligible_(f.facultyId, course.courseCode, eligibility),
-      ).length;
+      const candidateFaculty = faculty.map((f) => f.facultyName).join(", ");
+      const eligibleCount = faculty.length;
 
       const conflictType = classifyConflictType_(rejectionNotes, eligibleCount);
 
@@ -360,98 +307,12 @@ function generateSchedule() {
       "timeSlotOptions",
       "conflictType",
       "reason",
-      "eligibleFacultyCount",
+      "totalFacultyCount",
       "candidateFaculty",
     ],
     conflictRows,
   );
 }
-
-/* dont need this for now
-function generateCourseOverview() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const outputSheet = getOrCreateSheet_(ss, "Course_Overview");
-  outputSheet.clear();
-
-  const conflictSheet = ss.getSheetByName("Conflicts");
-  const coursesSheet = ss.getSheetByName("Courses");
-
-  const conflictSet = {};
-  if (conflictSheet && conflictSheet.getLastRow() > 1) {
-    const rows = sheetToObjects_(conflictSheet);
-    rows.forEach((r) => {
-      const code = normalizeCourseCode_(
-        pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
-      );
-      if (code) conflictSet[code] = true;
-    });
-  }
-
-  const courseRows = coursesSheet ? getNormalizedCourses_(coursesSheet) : [];
-  const lowerDiv = [];
-  const upperDiv = [];
-  const prereq195 = [];
-  const techElective = [];
-  const profNeeded = [];
-
-  courseRows.forEach((course) => {
-    const row = [course.courseCode, course.courseName];
-    const category = String(course.category || "").trim();
-
-    if (category === "Lower Div") lowerDiv.push(row);
-    if (category === "Upper Div") upperDiv.push(row);
-    if (category === "CMPE195 Prereq" || category === "195A Prereq")
-      prereq195.push(row);
-    if (category === "Tech Elective") techElective.push(row);
-    if (conflictSet[course.courseCode]) profNeeded.push(row);
-  });
-
-  outputSheet
-    .getRange(1, 1, 1, 5)
-    .setValues([
-      [
-        "Lower Div Courses",
-        "Upper Div Courses",
-        "195A Prereq",
-        "Tech Elective",
-        "Prof Needed",
-      ],
-    ]);
-
-  writeSingleColumnBlock_(
-    outputSheet,
-    2,
-    1,
-    lowerDiv.map((r) => [r[0] + " - " + r[1]]),
-  );
-  writeSingleColumnBlock_(
-    outputSheet,
-    2,
-    2,
-    upperDiv.map((r) => [r[0] + " - " + r[1]]),
-  );
-  writeSingleColumnBlock_(
-    outputSheet,
-    2,
-    3,
-    prereq195.map((r) => [r[0] + " - " + r[1]]),
-  );
-  writeSingleColumnBlock_(
-    outputSheet,
-    2,
-    4,
-    techElective.map((r) => [r[0] + " - " + r[1]]),
-  );
-  writeSingleColumnBlock_(
-    outputSheet,
-    2,
-    5,
-    profNeeded.map((r) => [r[0] + " - " + r[1]]),
-  );
-
-  styleOutputSheet_(outputSheet);
-}
-*/
 
 function getNormalizedCourses_(sheet) {
   const rows = sheetToObjects_(sheet);
@@ -499,8 +360,7 @@ function getNormalizedCourses_(sheet) {
       category: String(pickField_(r, ["category", "Category"]) || "").trim(),
     }))
     .map((r) => {
-      // These courses have multiple sections at the same time
-      // but are taught at the same time by one professor
+      // These courses have multiple sections at the same time but are taught at the same time by one professor
       const singleSectionCourses = ["CMPE 195A", "CMPE 195B"];
       if (singleSectionCourses.includes(r.courseCode)) {
         r.sectionsNeeded = 1;
@@ -546,21 +406,6 @@ function getNormalizedFaculty_(sheet, prefSheet) {
       };
     })
     .filter((r) => r.facultyId);
-}
-
-function getNormalizedEligibility_(sheet) {
-  const rows = sheetToObjects_(sheet);
-  return rows
-    .map((r) => ({
-      facultyId: String(pickField_(r, ["email", "Email"])).trim(),
-      courseCode: normalizeCourseCode_(
-        pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
-      ),
-      eligible: normalizeBoolean_(
-        pickField_(r, ["eligible", "Eligible", "canTeach", "CanTeach"]),
-      ),
-    }))
-    .filter((r) => r.facultyId && r.courseCode);
 }
 
 function getNormalizedPreferences_(sheet, facultyList) {
@@ -634,11 +479,7 @@ function getNormalizedTimeSlots_() {
   return slots;
 }
 
-function compareExpandedCourses_(a, b, eligibility, preferences) {
-  const aEligible = countEligibleFaculty_(a.courseCode, eligibility);
-  const bEligible = countEligibleFaculty_(b.courseCode, eligibility);
-  if (aEligible !== bEligible) return aEligible - bEligible;
-
+function compareExpandedCourses_(a, b, preferences) {
   const aPref = countPreferenceMatches_(a.courseCode, preferences);
   const bPref = countPreferenceMatches_(b.courseCode, preferences);
   if (aPref !== bPref) return aPref - bPref;
@@ -690,30 +531,12 @@ function buildAssignmentNote_(facultyId, courseCode, timeSlot, preferences) {
 
   const notes = [];
   if (courseRank < 999) notes.push("course preference rank " + courseRank);
-  else notes.push("eligible match");
+  else notes.push("no stated preference for this course");
 
   if (timeRank === 0) notes.push("preferred time matched");
   else notes.push("standard slot assigned");
 
   return notes.join("; ");
-}
-
-function countEligibleFaculty_(courseCode, eligibilityRows) {
-  let count = 0;
-  const seen = {};
-  eligibilityRows.forEach((row) => {
-    if (
-      normalizeCourseCode_(row.courseCode) ===
-        normalizeCourseCode_(courseCode) &&
-      row.eligible === true
-    ) {
-      if (!seen[row.facultyId]) {
-        seen[row.facultyId] = true;
-        count += 1;
-      }
-    }
-  });
-  return count;
 }
 
 function countPreferenceMatches_(courseCode, preferences) {
@@ -745,16 +568,6 @@ function getPreferredTimeScore_(facultyId, timeSlot, preferences) {
   return match ? 0 : 1;
 }
 
-function isEligible_(facultyId, courseCode, eligibilityRows) {
-  return eligibilityRows.some(
-    (row) =>
-      String(row.facultyId).trim() === String(facultyId).trim() &&
-      normalizeCourseCode_(row.courseCode) ===
-        normalizeCourseCode_(courseCode) &&
-      row.eligible === true,
-  );
-}
-
 function isUnavailableForSlot_(faculty, timeSlot) {
   if (!timeSlot) return false;
   return faculty.unavailableSlots.includes(normalizeTimeSlot_(timeSlot));
@@ -780,8 +593,8 @@ function collapseReasons_(reasons) {
   return uniqueList_(reasons.filter(Boolean)).slice(0, 8).join("; ");
 }
 
-function classifyConflictType_(reasons, eligibleCount) {
-  if (eligibleCount === 0) return "NO_ELIGIBLE_FACULTY";
+function classifyConflictType_(reasons, totalFacultyCount) {
+  if (totalFacultyCount === 0) return "NO_FACULTY_AVAILABLE";
   const text = reasons.join(" ").toLowerCase();
   if (text.includes("overload") || text.includes("max load"))
     return "MAX_LOAD_REACHED";
@@ -818,15 +631,6 @@ function ensureFacultySheetReady_(ss, rawSheet) {
   return sheet;
 }
 
-function ensureEligibilitySheetReady_(ss, rawSheet) {
-  let sheet = ss.getSheetByName("Eligibility");
-  if (!sheet || sheet.getLastRow() < 2) {
-    buildEligibilitySheet();
-    sheet = ss.getSheetByName("Eligibility");
-  }
-  return sheet;
-}
-
 function sheetToObjects_(sheet) {
   const values = sheet.getDataRange().getValues();
   if (!values.length) return [];
@@ -842,6 +646,7 @@ function sheetToObjects_(sheet) {
 
 function writeSheet_(ss, name, headers, rows) {
   const sheet = getOrCreateSheet_(ss, name);
+  clearTrackedChangesForSheet_(ss, name);
   sheet.clearContents();
   sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
   if (rows.length) {
@@ -961,7 +766,7 @@ function generateConflictSummary() {
 
   const rows = sheetToObjects_(conflictSheet);
   const counts = {
-    NO_ELIGIBLE_FACULTY: 0,
+    NO_FACULTY_AVAILABLE: 0,
     MAX_LOAD_REACHED: 0,
     TIME_CONFLICT: 0,
     ALL_SLOTS_BLOCKED: 0,
@@ -986,7 +791,7 @@ function generateConflictSummary() {
 
   // Color-code by severity
   const colorMap = {
-    NO_ELIGIBLE_FACULTY: "#F4CCCC", // red - needs Eligibility sheet fix
+    NO_FACULTY_AVAILABLE: "#F4CCCC", // red - no faculty at all to draw from
     MAX_LOAD_REACHED: "#FCE8B2", // yellow - adjust maxLoad
     TIME_CONFLICT: "#FFF2CC", // light yellow - slot overlap
     ALL_SLOTS_BLOCKED: "#FCE8B2", // yellow - availability too narrow
@@ -1012,13 +817,9 @@ function validateSchedule() {
     return;
   }
 
-  const eligibilitySheet = ss.getSheetByName("Eligibility");
   const coursesSheet = ss.getSheetByName("Courses");
 
   const scheduleRows = sheetToObjects_(outputSheet);
-  const eligibilityRows = eligibilitySheet
-    ? sheetToObjects_(eligibilitySheet)
-    : [];
   const courseRows = coursesSheet ? getNormalizedCourses_(coursesSheet) : [];
 
   const logRows = [];
@@ -1067,30 +868,12 @@ function validateSchedule() {
       facultySlotMap[facultyId].push(slotKey);
     }
 
-    // Check 2: eligibility
-    const eligible = eligibilityRows.some(
-      (e) =>
-        String(e["email"] || "").trim() === facultyId &&
-        normalizeCourseCode_(e["courseCode"]) === courseCode &&
-        normalizeBoolean_(e["eligible"]) === true,
-    );
-    if (!eligible) {
-      logRows.push([
-        rowNum,
-        courseCode,
-        facultyId,
-        "FAIL",
-        "NOT_ELIGIBLE",
-        facultyId + " is not listed as eligible to teach " + courseCode,
-      ]);
-    }
-
-    // Track load and section counts for checks 3 and 4
+    // Track load and section counts for checks 2 and 3
     facultyLoadMap[facultyId] = (facultyLoadMap[facultyId] || 0) + 1;
     courseSectionMap[courseCode] = (courseSectionMap[courseCode] || 0) + 1;
   });
 
-  // Check 3: max load exceeded
+  // Check 2: max load exceeded
   // Re-read faculty sheet to get maxLoad per faculty
   const facultySheet = ss.getSheetByName("Faculty");
   if (facultySheet && facultySheet.getLastRow() > 1) {
@@ -1116,7 +899,7 @@ function validateSchedule() {
     });
   }
 
-  // Check 4: sections assigned vs sections needed
+  // Check 3: sections assigned vs sections needed
   courseRows.forEach((c) => {
     const needed = Number(c.sectionsNeeded || 1);
     const assigned = courseSectionMap[c.courseCode] || 0;
@@ -1180,138 +963,225 @@ function validateSchedule() {
   );
 }
 
-function importScraperCSV() {
-  const ui = SpreadsheetApp.getUi();
+/* =========================================================================
+ * CHANGE TRACKING
+ * - Every single-cell edit gets a hover note with the previous value, who
+ *   changed it, and when, plus a red highlight on the cell.
+ * - Multi-cell edits (paste/fill/delete) get flagged too, but Sheets doesn't
+ *   expose old values for those, so the note says so instead of guessing.
+ * - Three ways to review changes: (1) hover over any highlighted cell,
+ *   (2) "View Change Log" for a full running audit trail, (3) "Jump to Next
+ *   Change" to cycle through every flagged cell one at a time.
+ * ========================================================================= */
 
-  const result = ui.prompt(
-    "Import Scraper CSV",
-    "Paste the Google Drive file ID of your sjsu_major_courses_spring_2026.csv file:",
-    ui.ButtonSet.OK_CANCEL,
+const CHANGE_LOG_SHEET_NAME = "Change_Log";
+const CHANGE_HIGHLIGHT_COLOR = "#F4CCCC";
+const CHANGE_EXCLUDED_SHEETS = [
+  "Conflicts",
+  "Conflict_Summary",
+  "Validation_Log",
+  CHANGE_LOG_SHEET_NAME,
+];
+
+function onEdit(e) {
+  try {
+    if (!e || !e.range) return;
+
+    const sheet = e.range.getSheet();
+    const sheetName = sheet.getName();
+    if (CHANGE_EXCLUDED_SHEETS.indexOf(sheetName) !== -1) return;
+
+    // Don't track edits to the header row.
+    if (e.range.getRow() === 1 && e.range.getNumRows() === 1) return;
+
+    const numCells = e.range.getNumRows() * e.range.getNumColumns();
+
+    if (numCells === 1) {
+      const oldValue = e.oldValue !== undefined ? e.oldValue : "";
+      const newValue = e.value !== undefined ? e.value : e.range.getValue();
+      if (String(oldValue) === String(newValue)) return;
+      recordChange_(sheet, e.range, oldValue, newValue, false);
+    } else {
+      // Multi-cell edit - no per-cell old values available from the event.
+      const values = e.range.getValues();
+      for (let r = 0; r < values.length; r++) {
+        for (let c = 0; c < values[r].length; c++) {
+          const cell = sheet.getRange(
+            e.range.getRow() + r,
+            e.range.getColumn() + c,
+          );
+          recordChange_(sheet, cell, null, values[r][c], true);
+        }
+      }
+    }
+  } catch (err) {
+    // Never let tracking errors block the user's actual edit.
+    console.error(err);
+  }
+}
+
+function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
+  const user = getEditingUser_();
+  const now = new Date();
+  const timestamp = Utilities.formatDate(
+    now,
+    Session.getScriptTimeZone(),
+    "MM/dd/yyyy HH:mm",
   );
 
-  if (result.getSelectedButton() !== ui.Button.OK) return;
+  const previousText = isBulk
+    ? "(bulk edit - previous value not captured)"
+    : formatValueForNote_(oldValue);
 
-  const fileId = result.getResponseText().trim();
-  if (!fileId) {
-    ui.alert("No file ID entered. Cancelled.");
-    return;
-  }
+  const noteText =
+    "Previous: " +
+    previousText +
+    "\nChanged by: " +
+    user +
+    "\nChanged at: " +
+    timestamp;
 
-  let csvText;
+  cell.setNote(noteText);
+  cell.setBackground(CHANGE_HIGHLIGHT_COLOR);
+
+  logChange_(
+    sheet.getName(),
+    cell.getA1Notation(),
+    previousText,
+    formatValueForNote_(newValue),
+    user,
+    now,
+  );
+  addPendingChange_(sheet.getName(), cell.getA1Notation());
+}
+
+function getEditingUser_() {
   try {
-    const file = DriveApp.getFileById(fileId);
-    csvText = file.getBlob().getDataAsString();
-  } catch (e) {
-    ui.alert(
-      "Could not read file. Make sure the file ID is correct and the file is in your Drive.\n\n" +
-        e.message,
-    );
+    const email = Session.getActiveUser().getEmail();
+    return email || "Unknown user";
+  } catch (err) {
+    return "Unknown user";
+  }
+}
+
+function formatValueForNote_(value) {
+  const text = String(value === null || value === undefined ? "" : value);
+  return text === "" ? "(empty)" : text;
+}
+
+function logChange_(sheetName, a1, previousValue, newValue, user, timestamp) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const logSheet = getOrCreateChangeLogSheet_(ss);
+  logSheet.appendRow([timestamp, user, sheetName, a1, previousValue, newValue]);
+}
+
+function getOrCreateChangeLogSheet_(ss) {
+  let sheet = ss.getSheetByName(CHANGE_LOG_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(CHANGE_LOG_SHEET_NAME);
+    sheet.appendRow([
+      "timestamp",
+      "user",
+      "sheet",
+      "cell",
+      "previousValue",
+      "newValue",
+    ]);
+    styleOutputSheet_(sheet);
+    sheet.hideSheet();
+  }
+  return sheet;
+}
+
+function clearTrackedChangesForSheet_(ss, sheetName) {
+  const sheet = ss.getSheetByName(sheetName);
+  if (sheet) {
+    const dataRange = sheet.getDataRange();
+    if (dataRange.getNumRows() > 0 && dataRange.getNumColumns() > 0) {
+      dataRange.setBackground(null);
+      dataRange.clearNote();
+    }
+  }
+
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  if (!raw) return;
+  const list = JSON.parse(raw);
+  const filtered = list.filter((id) => id.split("!")[0] !== sheetName);
+  props.setProperty("pendingChanges", JSON.stringify(filtered));
+}
+
+function addPendingChange_(sheetName, a1) {
+  const props = PropertiesService.getDocumentProperties();
+  const key = "pendingChanges";
+  const raw = props.getProperty(key);
+  const list = raw ? JSON.parse(raw) : [];
+  const id = sheetName + "!" + a1;
+  if (list.indexOf(id) === -1) list.push(id);
+  props.setProperty(key, JSON.stringify(list));
+}
+
+function jumpToNextChange() {
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const list = raw ? JSON.parse(raw) : [];
+
+  if (!list.length) {
+    SpreadsheetApp.getUi().alert("No tracked changes found.");
     return;
   }
 
-  const rows = Utilities.parseCsv(csvText);
-  if (rows.length < 2) {
-    ui.alert("CSV appears empty or has no data rows.");
-    return;
-  }
+  let idx = Number(props.getProperty("pendingChangeIndex") || 0);
+  if (idx >= list.length) idx = 0;
 
-  // Find column indices from the scraper CSV headers:
-  // expected: course, course_title, section_amount, amount_of_open_seats
-  const headers = rows[0].map((h) => String(h).trim().toLowerCase());
-  const codeIdx = headers.indexOf("course");
-  const titleIdx = headers.indexOf("course_title");
-  const sectionsIdx = headers.indexOf("section_amount");
-
-  if (codeIdx === -1 || titleIdx === -1 || sectionsIdx === -1) {
-    ui.alert(
-      "CSV is missing expected columns. Make sure it was generated by the SJSU scraper.\n\nExpected: course, course_title, section_amount",
-    );
-    return;
-  }
+  const parts = list[idx].split("!");
+  const sheetName = parts[0];
+  const a1 = parts[1];
 
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const coursesSheet = getOrCreateSheet_(ss, "Courses");
+  const sheet = ss.getSheetByName(sheetName);
+  if (sheet) {
+    ss.setActiveSheet(sheet);
+    sheet.getRange(a1).activate();
+  }
 
-  // Read existing courses so we can upsert (update if exists, insert if new)
-  const existingData = coursesSheet.getDataRange().getValues();
-  const existingHeaders = existingData[0].map((h) =>
-    String(h).trim().toLowerCase(),
+  props.setProperty("pendingChangeIndex", String(idx + 1));
+}
+
+function acceptAllChanges() {
+  const ui = SpreadsheetApp.getUi();
+  const resp = ui.alert(
+    "Accept all tracked changes?",
+    "This confirms the current values are correct and removes the highlight colors and notes from tracked cells. The values themselves are kept as-is — nothing is reverted.",
+    ui.ButtonSet.YES_NO,
   );
-  const existingCodeIdx = existingHeaders.indexOf("course");
-  const existingSectionsIdx = existingHeaders.indexOf("section_amount");
-  const existingNameIdx = existingHeaders.indexOf("course_title");
+  if (resp !== ui.Button.YES) return;
 
-  // If Courses sheet is empty or missing required headers, write fresh
-  if (existingCodeIdx === -1 || existingSectionsIdx === -1) {
-    coursesSheet.clearContents();
-    coursesSheet
-      .getRange(1, 1, 1, 5)
-      .setValues([
-        [
-          "course",
-          "course_title",
-          "section_amount",
-          "valid_class_times",
-          "termsOffered",
-        ],
-      ]);
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const list = raw ? JSON.parse(raw) : [];
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-    const newRows = rows
-      .slice(1)
-      .filter((r) => String(r[codeIdx] || "").trim())
-      .map((r) => [
-        normalizeCourseCode_(r[codeIdx]),
-        String(r[titleIdx] || "").trim(),
-        Number(r[sectionsIdx] || 1),
-        "",
-        "Spring",
-      ]);
-
-    if (newRows.length) {
-      coursesSheet.getRange(2, 1, newRows.length, 6).setValues(newRows);
+  list.forEach((id) => {
+    const parts = id.split("!");
+    const sheetName = parts[0];
+    const a1 = parts[1];
+    const sheet = ss.getSheetByName(sheetName);
+    if (sheet) {
+      const range = sheet.getRange(a1);
+      range.setBackground(null);
+      range.clearNote();
     }
-    styleOutputSheet_(coursesSheet);
-    ui.alert(
-      "Courses sheet populated with " +
-        newRows.length +
-        " courses from scraper CSV.",
-    );
-    return;
-  }
+  });
 
-  // Always rewrite fresh from the scraper CSV
-  coursesSheet.clearContents();
-  coursesSheet
-    .getRange(1, 1, 1, 5)
-    .setValues([
-      [
-        "course",
-        "course_title",
-        "section_amount",
-        "valid_class_times",
-        "termsOffered",
-      ],
-    ]);
+  props.deleteProperty("pendingChanges");
+  props.deleteProperty("pendingChangeIndex");
+  ui.alert("Accepted " + list.length + " change(s).");
+}
 
-  const newRows = rows
-    .slice(1)
-    .filter((r) => String(r[codeIdx] || "").trim())
-    .map((r) => [
-      normalizeCourseCode_(r[codeIdx]),
-      String(r[titleIdx] || "").trim(),
-      Number(r[sectionsIdx] || 1),
-      String(r[headers.indexOf("valid_class_times")] || "").trim(),
-      "Spring",
-    ]);
-
-  if (newRows.length) {
-    coursesSheet.getRange(2, 1, newRows.length, 5).setValues(newRows);
-  }
-
-  styleOutputSheet_(coursesSheet);
-  ui.alert(
-    "Courses sheet populated with " +
-      newRows.length +
-      " courses from scraper CSV.",
-  );
+function showChangeLog() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateChangeLogSheet_(ss);
+  sheet.showSheet();
+  ss.setActiveSheet(sheet);
 }
