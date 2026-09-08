@@ -4,6 +4,7 @@ function onOpen() {
     .addItem("Clean preferences", "cleanPreferences")
     .addItem("Build faculty sheet", "buildFacultySheet")
     .addItem("Generate schedule", "generateSchedule")
+    .addItem("Update open seats", "updateCourseOpenSeats")
     // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
     .addItem("Generate conflict summary", "generateConflictSummary")
     .addItem("Validate schedule", "validateSchedule")
@@ -14,6 +15,139 @@ function onOpen() {
     .addItem("Accept All Changes", "acceptAllChanges")
     .addItem("Revert to Original Changes", "revertAllChanges")
     .addToUi();
+}
+
+function updateCourseOpenSeats() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const coursesSheet = mustGetSheet_(ss, "Courses");
+  const scheduleUrl =
+    "https://www.sjsu.edu/classes/schedules/fall-2026.php";
+
+  const response = UrlFetchApp.fetch(scheduleUrl, {
+    muteHttpExceptions: true,
+    followRedirects: true,
+    headers: { "User-Agent": "Mozilla/5.0" },
+  });
+  const status = response.getResponseCode();
+  if (status < 200 || status >= 300) {
+    throw new Error("SJSU schedule request failed with HTTP " + status + ".");
+  }
+
+  const scheduleByCourse = parseSjsuOpenSeats_(response.getContentText());
+  const range = coursesSheet.getDataRange();
+  const values = range.getValues();
+  if (values.length < 2) {
+    SpreadsheetApp.getUi().alert("The Courses sheet has no course rows.");
+    return;
+  }
+
+  const headers = values[0].map((header) => String(header).trim().toLowerCase());
+  const courseCol = findHeaderIndex_(headers, ["course", "coursecode", "course code"]);
+  if (courseCol === -1) throw new Error("Courses sheet is missing a course column.");
+
+  let seatsCol = findHeaderIndex_(headers, ["seats_open", "seats open", "open seats"]);
+  if (seatsCol === -1) {
+    seatsCol = values[0].length;
+    coursesSheet.getRange(1, seatsCol + 1).setValue("SEATS OPEN");
+  }
+
+  const output = [];
+  const missing = [];
+  let updatedCount = 0;
+  for (let i = 1; i < values.length; i++) {
+    const courseCode = normalizeCourseCode_(values[i][courseCol]);
+    if (!courseCode) {
+      output.push([""]);
+      continue;
+    }
+
+    if (Object.prototype.hasOwnProperty.call(scheduleByCourse, courseCode)) {
+      output.push([scheduleByCourse[courseCode]]);
+      updatedCount++;
+    } else {
+      output.push([""]);
+      missing.push(courseCode);
+    }
+  }
+
+  coursesSheet.getRange(2, seatsCol + 1, output.length, 1).setValues(output);
+  coursesSheet.getRange(1, seatsCol + 1).setFontWeight("bold");
+
+  const uniqueMissing = uniqueList_(missing);
+  SpreadsheetApp.getUi().alert(
+    "Updated open seats for " +
+      updatedCount +
+      " course row(s)." +
+      (uniqueMissing.length
+        ? " Not found on the SJSU page: " + uniqueMissing.join(", ")
+        : ""),
+  );
+}
+
+function parseSjsuOpenSeats_(html) {
+  const courseTotals = {};
+  const rowMatches = html.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
+  let sectionCol = -1;
+  let openSeatsCol = -1;
+
+  rowMatches.forEach((rowHtml) => {
+    const cells = extractHtmlCells_(rowHtml);
+    const cellText = cells.map(stripHtml_);
+    const normalizedHeaders = cellText.map((text) => text.toLowerCase());
+
+    if (
+      normalizedHeaders.indexOf("section") !== -1 &&
+      normalizedHeaders.indexOf("open seats") !== -1
+    ) {
+      sectionCol = normalizedHeaders.indexOf("section");
+      openSeatsCol = normalizedHeaders.indexOf("open seats");
+      return;
+    }
+
+    if (sectionCol === -1 || openSeatsCol === -1) return;
+    const courseCode = normalizeCourseCode_(cellText[sectionCol]);
+    const openSeatsText = cellText[openSeatsCol].replace(/[^0-9-]/g, "");
+    if (!courseCode || !openSeatsText) return;
+
+    const openSeats = Number(openSeatsText);
+    if (isNaN(openSeats)) return;
+    courseTotals[courseCode] = (courseTotals[courseCode] || 0) + openSeats;
+  });
+
+  return courseTotals;
+}
+
+function extractHtmlCells_(rowHtml) {
+  const cells = [];
+  const cellMatches = rowHtml.match(/<t[dh]\b[\s\S]*?<\/t[dh]>/gi) || [];
+  cellMatches.forEach((cellHtml) => {
+    cells.push(cellHtml.replace(/^<t[dh]\b[^>]*>/i, "").replace(/<\/t[dh]>$/i, ""));
+  });
+  return cells;
+}
+
+function stripHtml_(value) {
+  return decodeHtmlEntities_(String(value || "").replace(/<[^>]+>/g, " "))
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function decodeHtmlEntities_(value) {
+  return String(value || "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;|&apos;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function findHeaderIndex_(headers, aliases) {
+  for (let i = 0; i < aliases.length; i++) {
+    const index = headers.indexOf(aliases[i].toLowerCase());
+    if (index !== -1) return index;
+  }
+  return -1;
 }
 
 function cleanPreferences() {
