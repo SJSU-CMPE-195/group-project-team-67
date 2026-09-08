@@ -16,7 +16,7 @@
 | 3/20/26 | 40 min   | Remote             | Vance, Yashas, Michael | Discussed updates, checkpoints, and next steps | Incorporate spreadsheet preferences, output spreadsheet incorporate system                                                                                         |
 | 4/10/26 | 20 min   | Remote             | Everyone               | Discussed updates, checkpoints, and next steps | sync all different appscript functions into one sheet, implementation of visualizing a schedule, and to contact further for course dataset from previous semesters |
 | 9/1/26  | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Create a prior history function that can view previous edits to the schedule, implement seat count if information is publicly accessible                           |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 9/8/26  | 60 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Undo instead of reset all changes, column to show what's completed, track log, track log by date, difference between class size and room cap, show room cap        |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
@@ -218,6 +218,36 @@
 - [ ] [Version History/Track Changes] - [Everyone] - [Next advisor meeting]
 - [ ] [Seat Count] - [Everyone] - [Next advisor meeting]
 
+---
+
+### [9/1/2026] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+  
+**Discussion:**
+- Use version history on Google sheets and connect to the API.
+- Instead of resetting all, change to an undo button
+- Have all the rows as a filter change and add to the change log.
+- Add an addition of colors for designations (cyan - main row, magenta is dates, green is questions from Caps Sheet)
+- Have meeting with the Jorjeta for open seats Have done this meeting
+- Change name to emails (minor change) - kinda already implemented
+- Change courses you have taught previously in Google forms
+- Tracklog changes per day (admin does the changes)
+- Room number for each rows listed with Caps; swap rooms based on cap sizes and compare; if increase the cap, increase the room sizes. (e.g. if class is 42 and room is 50, know the difference remaining, under/overcapacity)
+- Have a overwrite import function so that a excel sheet can replace old values with imported values (only changed values (e.g. 100 to 200, not 100 to 100) for Beth)
+- Aquire .pdf file for room sizes
+- Link Prof. Jorjeta sent (doesn't look like its updated):https://prd-analytics.sjsu.edu/#/site/ir/home
+- EXTRA: Tampermonkey to grab waitlists later
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Replace reset all with undo] - [Everyone] - [Next advisor meeting]
+- [ ] [Tracklog by date/description] - [Everyone] - [Next advisor meeting]
+- [ ] [Swap functionality (Room Cap)] - [Everyone] - [Next advisor meeting]
+- [ ] [Column showing completion] - [Everyone] - [Next advisor meeting]
 ---
 
 ### [Date] - [Advisor/Team] Meeting
