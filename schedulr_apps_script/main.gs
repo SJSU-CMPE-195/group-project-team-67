@@ -907,6 +907,7 @@ function validateSchedule() {
 
 const CHANGE_LOG_SHEET_NAME = "Change_Log";
 const CHANGE_HIGHLIGHT_COLOR = "#F4CCCC";
+const CHANGE_LOG_DATE_HEADER_COLOR = "#FFF2CC";
 const CHANGE_EXCLUDED_SHEETS = [
   "Conflicts",
   "Conflict_Summary",
@@ -1011,7 +1012,38 @@ function formatValueForNote_(value) {
 function logChange_(sheetName, a1, previousValue, newValue, user, timestamp) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const logSheet = getOrCreateChangeLogSheet_(ss);
-  logSheet.appendRow([timestamp, user, sheetName, a1, previousValue, newValue]);
+  const dayStart = new Date(
+    timestamp.getFullYear(),
+    timestamp.getMonth(),
+    timestamp.getDate(),
+  );
+
+  const hasExistingRows = logSheet.getLastRow() >= 2;
+  const topRowIsToday =
+    hasExistingRows && isSameDay_(logSheet.getRange(2, 1).getValue(), dayStart);
+
+  if (!topRowIsToday) {
+    // Insert a date-header row right under the column headers if new day, above whatever day was previously on top.
+    logSheet.insertRowBefore(2);
+    const headerRange = logSheet.getRange(2, 1, 1, 6);
+    headerRange.setBackground(CHANGE_LOG_DATE_HEADER_COLOR);
+    logSheet.getRange(2, 1).setValue(dayStart).setNumberFormat("M/d/yyyy");
+  }
+
+  // New entry always goes right under that day's header, so entries for the same day stack below their date row without touching earlier days.
+  logSheet.insertRowBefore(3);
+  logSheet
+    .getRange(3, 1, 1, 6)
+    .setValues([[timestamp, user, sheetName, a1, previousValue, newValue]]);
+}
+
+function isSameDay_(a, b) {
+  if (!(a instanceof Date) || !(b instanceof Date)) return false;
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
 }
 
 function getOrCreateChangeLogSheet_(ss) {
