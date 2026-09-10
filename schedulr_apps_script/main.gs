@@ -4,7 +4,6 @@ function onOpen() {
     .addItem("Clean preferences", "cleanPreferences")
     .addItem("Build faculty sheet", "buildFacultySheet")
     .addItem("Generate schedule", "generateSchedule")
-    .addItem("Update open seats", "updateCourseOpenSeats")
     // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
     .addItem("Generate conflict summary", "generateConflictSummary")
     .addItem("Validate schedule", "validateSchedule")
@@ -13,141 +12,8 @@ function onOpen() {
     .addItem("Clear Change Log", "clearChangeLog")
     .addItem("Jump to Next Change", "jumpToNextChange")
     .addItem("Accept All Changes", "acceptAllChanges")
-    .addItem("Revert to Original Changes", "revertAllChanges")
+    .addItem("Undo Changes", "undoAllChanges")
     .addToUi();
-}
-
-function updateCourseOpenSeats() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const coursesSheet = mustGetSheet_(ss, "Courses");
-  const scheduleUrl =
-    "https://www.sjsu.edu/classes/schedules/fall-2026.php";
-
-  const response = UrlFetchApp.fetch(scheduleUrl, {
-    muteHttpExceptions: true,
-    followRedirects: true,
-    headers: { "User-Agent": "Mozilla/5.0" },
-  });
-  const status = response.getResponseCode();
-  if (status < 200 || status >= 300) {
-    throw new Error("SJSU schedule request failed with HTTP " + status + ".");
-  }
-
-  const scheduleByCourse = parseSjsuOpenSeats_(response.getContentText());
-  const range = coursesSheet.getDataRange();
-  const values = range.getValues();
-  if (values.length < 2) {
-    SpreadsheetApp.getUi().alert("The Courses sheet has no course rows.");
-    return;
-  }
-
-  const headers = values[0].map((header) => String(header).trim().toLowerCase());
-  const courseCol = findHeaderIndex_(headers, ["course", "coursecode", "course code"]);
-  if (courseCol === -1) throw new Error("Courses sheet is missing a course column.");
-
-  let seatsCol = findHeaderIndex_(headers, ["seats_open", "seats open", "open seats"]);
-  if (seatsCol === -1) {
-    seatsCol = values[0].length;
-    coursesSheet.getRange(1, seatsCol + 1).setValue("SEATS OPEN");
-  }
-
-  const output = [];
-  const missing = [];
-  let updatedCount = 0;
-  for (let i = 1; i < values.length; i++) {
-    const courseCode = normalizeCourseCode_(values[i][courseCol]);
-    if (!courseCode) {
-      output.push([""]);
-      continue;
-    }
-
-    if (Object.prototype.hasOwnProperty.call(scheduleByCourse, courseCode)) {
-      output.push([scheduleByCourse[courseCode]]);
-      updatedCount++;
-    } else {
-      output.push([""]);
-      missing.push(courseCode);
-    }
-  }
-
-  coursesSheet.getRange(2, seatsCol + 1, output.length, 1).setValues(output);
-  coursesSheet.getRange(1, seatsCol + 1).setFontWeight("bold");
-
-  const uniqueMissing = uniqueList_(missing);
-  SpreadsheetApp.getUi().alert(
-    "Updated open seats for " +
-      updatedCount +
-      " course row(s)." +
-      (uniqueMissing.length
-        ? " Not found on the SJSU page: " + uniqueMissing.join(", ")
-        : ""),
-  );
-}
-
-function parseSjsuOpenSeats_(html) {
-  const courseTotals = {};
-  const rowMatches = html.match(/<tr\b[\s\S]*?<\/tr>/gi) || [];
-  let sectionCol = -1;
-  let openSeatsCol = -1;
-
-  rowMatches.forEach((rowHtml) => {
-    const cells = extractHtmlCells_(rowHtml);
-    const cellText = cells.map(stripHtml_);
-    const normalizedHeaders = cellText.map((text) => text.toLowerCase());
-
-    if (
-      normalizedHeaders.indexOf("section") !== -1 &&
-      normalizedHeaders.indexOf("open seats") !== -1
-    ) {
-      sectionCol = normalizedHeaders.indexOf("section");
-      openSeatsCol = normalizedHeaders.indexOf("open seats");
-      return;
-    }
-
-    if (sectionCol === -1 || openSeatsCol === -1) return;
-    const courseCode = normalizeCourseCode_(cellText[sectionCol]);
-    const openSeatsText = cellText[openSeatsCol].replace(/[^0-9-]/g, "");
-    if (!courseCode || !openSeatsText) return;
-
-    const openSeats = Number(openSeatsText);
-    if (isNaN(openSeats)) return;
-    courseTotals[courseCode] = (courseTotals[courseCode] || 0) + openSeats;
-  });
-
-  return courseTotals;
-}
-
-function extractHtmlCells_(rowHtml) {
-  const cells = [];
-  const cellMatches = rowHtml.match(/<t[dh]\b[\s\S]*?<\/t[dh]>/gi) || [];
-  cellMatches.forEach((cellHtml) => {
-    cells.push(cellHtml.replace(/^<t[dh]\b[^>]*>/i, "").replace(/<\/t[dh]>$/i, ""));
-  });
-  return cells;
-}
-
-function stripHtml_(value) {
-  return decodeHtmlEntities_(String(value || "").replace(/<[^>]+>/g, " "))
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-function decodeHtmlEntities_(value) {
-  return String(value || "")
-    .replace(/&nbsp;/gi, " ")
-    .replace(/&amp;/gi, "&")
-    .replace(/&quot;/gi, '"')
-    .replace(/&#39;|&apos;/gi, "'")
-    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
-    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
-}
-
-function findHeaderIndex_(headers, aliases) {
-  for (let i = 0; i < aliases.length; i++) {
-    const index = headers.indexOf(aliases[i].toLowerCase());
-    if (index !== -1) return index;
-  }
-  return -1;
 }
 
 function cleanPreferences() {
@@ -1099,20 +965,6 @@ function validateSchedule() {
   );
 }
 
-/* =========================================================================
- * CHANGE TRACKING
- * - Every single-cell edit gets a hover note with the previous value, who
- *   changed it, and when, plus a red highlight on the cell.
- * - Multi-cell edits (paste/fill/delete) get flagged too, but Sheets doesn't
- *   expose old values for those, so the note says so instead of guessing.
- * - Three ways to review changes: (1) hover over any highlighted cell,
- *   (2) "View Change Log" for a full running audit trail, (3) "Jump to Next
- *   Change" to cycle through every flagged cell one at a time.
- * - "Accept All Changes" clears highlights/notes and keeps the current
- *   values. "Revert to Original Changes" restores each cell's prior value
- *   (where captured) and then clears highlights/notes.
- * ========================================================================= */
-
 const CHANGE_LOG_SHEET_NAME = "Change_Log";
 const CHANGE_HIGHLIGHT_COLOR = "#F4CCCC";
 const CHANGE_EXCLUDED_SHEETS = [
@@ -1172,15 +1024,15 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
     ? "(bulk edit - previous value not captured)"
     : formatValueForNote_(oldValue);
 
-  const noteText =
-    "Previous: " +
+  const entryText =
     previousText +
+    " -> " +
+    formatValueForNote_(newValue) +
     "\nChanged by: " +
     user +
     "\nChanged at: " +
     timestamp;
 
-  cell.setNote(noteText);
   cell.setBackground(CHANGE_HIGHLIGHT_COLOR);
 
   logChange_(
@@ -1191,7 +1043,15 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
     user,
     now,
   );
-  addPendingChange_(sheet.getName(), cell.getA1Notation(), oldValue, isBulk);
+
+  addPendingChange_(
+    sheet.getName(),
+    cell.getA1Notation(),
+    oldValue,
+    isBulk,
+    entryText,
+  );
+  refreshCellNote_(sheet, cell.getA1Notation());
 }
 
 function getEditingUser_() {
@@ -1253,17 +1113,42 @@ function clearTrackedChangesForSheet_(ss, sheetName) {
   props.setProperty("pendingChanges", JSON.stringify(filtered));
 }
 
-function addPendingChange_(sheetName, a1, rawOldValue, isBulk) {
+function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText) {
   const props = PropertiesService.getDocumentProperties();
   const key = "pendingChanges";
   const raw = props.getProperty(key);
   const map = raw ? JSON.parse(raw) : {};
   const id = sheetName + "!" + a1;
-  map[id] = {
+
+  if (!map[id]) {
+    map[id] = { history: [] };
+  }
+
+  // Each edit is pushed onto this cell's history. "Undo" pops the most
+  // recent entry (one step back); the note is rebuilt from whatever's left.
+  map[id].history.push({
     previousValue: isBulk ? null : rawOldValue,
     isBulk: !!isBulk,
-  };
+    noteText: entryText,
+  });
+
   props.setProperty(key, JSON.stringify(map));
+}
+
+function refreshCellNote_(sheet, a1) {
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const map = raw ? JSON.parse(raw) : {};
+  const id = sheet.getName() + "!" + a1;
+  const entry = map[id];
+  const range = sheet.getRange(a1);
+
+  if (!entry || !entry.history || !entry.history.length) {
+    range.clearNote();
+    return;
+  }
+
+  range.setNote(entry.history.map((h) => h.noteText).join("\n\n"));
 }
 
 function jumpToNextChange() {
@@ -1326,11 +1211,11 @@ function acceptAllChanges() {
   ui.alert("Accepted " + ids.length + " change(s).");
 }
 
-function revertAllChanges() {
+function undoAllChanges() {
   const ui = SpreadsheetApp.getUi();
   const resp = ui.alert(
-    "Revert to original values?",
-    "This restores the value each tracked cell had before it was edited, then clears the highlight and note. Cells changed by a bulk edit (paste/fill) don't have a captured previous value, so those will just be cleared, not reverted.",
+    "Undo tracked changes?",
+    "This steps each tracked cell back by one edit (its most recent change) and updates the note to show whatever history is left. The cell stays highlighted as long as history remains; once it's undone all the way back to its original value, the highlight clears automatically. Cells changed by a bulk edit (paste/fill) don't have a captured previous value, so that edit is dropped from the note without changing the cell's value.",
     ui.ButtonSet.YES_NO,
   );
   if (resp !== ui.Button.YES) return;
@@ -1341,7 +1226,7 @@ function revertAllChanges() {
   const ids = Object.keys(map);
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
-  let reverted = 0;
+  let undone = 0;
   let skipped = 0;
 
   ids.forEach((id) => {
@@ -1351,31 +1236,44 @@ function revertAllChanges() {
     const sheet = ss.getSheetByName(sheetName);
     if (!sheet) return;
 
-    const range = sheet.getRange(a1);
     const entry = map[id];
+    const history = (entry && entry.history) || [];
+    if (!history.length) return; // already fully undone, stays highlighted
 
-    if (entry && !entry.isBulk) {
-      range.setValue(entry.previousValue);
-      reverted++;
-    } else {
+    const last = history.pop();
+    const range = sheet.getRange(a1);
+
+    if (last.isBulk) {
       skipped++;
+    } else {
+      range.setValue(last.previousValue);
+      undone++;
     }
 
-    range.setBackground(null);
-    range.clearNote();
+    if (history.length) {
+      range.setNote(history.map((h) => h.noteText).join("\n\n"));
+      // Still has history left - stays highlighted.
+    } else {
+      range.clearNote();
+      range.setBackground(null);
+      delete map[id];
+    }
   });
 
-  props.deleteProperty("pendingChanges");
-  props.deleteProperty("pendingChangeIndex");
+  props.setProperty("pendingChanges", JSON.stringify(map));
 
   ui.alert(
-    "Reverted " +
-      reverted +
-      " cell(s) to their original value." +
+    "Undid " +
+      undone +
+      " cell(s)." +
       (skipped > 0
         ? " " +
           skipped +
-          " cell(s) from bulk edits couldn't be reverted and were just cleared."
+          " bulk-edit entr" +
+          (skipped === 1 ? "y" : "ies") +
+          " couldn't be undone and " +
+          (skipped === 1 ? "was" : "were") +
+          " just dropped from the note."
         : ""),
   );
 }
