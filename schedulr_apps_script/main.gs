@@ -26,7 +26,6 @@ function cleanPreferences() {
 
   cleanSheet.clear();
   cleanSheet.appendRow([
-    "facultyName",
     "email",
     "courseCode",
     "preferenceRank",
@@ -42,48 +41,27 @@ function cleanPreferences() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const facultyName = String(row[1] || "").trim();
-    const email = String(row[2] || "")
+    const email = String(row[0] || "")
       .trim()
       .toLowerCase();
+    if (!email) continue; // no email, no way to track this professor
 
-    const pref1 = normalizeCourseCode_(row[3]);
-    const pref2 = normalizeCourseCode_(row[4]);
-    const pref3 = normalizeCourseCode_(row[5]);
+    const pref1 = normalizeCourseCode_(row[1]);
+    const pref2 = normalizeCourseCode_(row[2]);
+    const pref3 = normalizeCourseCode_(row[3]);
 
-    const availabilityList = splitMultiSelect_(row[6]).map(normalizeTimeSlot_);
-    const maxCourses = Number(row[8] || 0);
+    const availabilityList = splitMultiSelect_(row[4]).map(normalizeTimeSlot_);
+    const maxCourses = Number(row[6] || 0);
 
     // Use the first available slot as "preferredTime" for scoring.
     const preferredTime = availabilityList.length ? availabilityList[0] : "";
 
     if (pref1)
-      cleanSheet.appendRow([
-        facultyName,
-        email,
-        pref1,
-        1,
-        preferredTime,
-        maxCourses,
-      ]);
+      cleanSheet.appendRow([email, pref1, 1, preferredTime, maxCourses]);
     if (pref2 && pref2 !== pref1)
-      cleanSheet.appendRow([
-        facultyName,
-        email,
-        pref2,
-        2,
-        preferredTime,
-        maxCourses,
-      ]);
+      cleanSheet.appendRow([email, pref2, 2, preferredTime, maxCourses]);
     if (pref3 && pref3 !== pref1 && pref3 !== pref2)
-      cleanSheet.appendRow([
-        facultyName,
-        email,
-        pref3,
-        3,
-        preferredTime,
-        maxCourses,
-      ]);
+      cleanSheet.appendRow([email, pref3, 3, preferredTime, maxCourses]);
   }
 
   styleOutputSheet_(cleanSheet);
@@ -96,12 +74,7 @@ function buildFacultySheet() {
   const data = rawSheet.getDataRange().getValues();
 
   facultySheet.clear();
-  facultySheet.appendRow([
-    "facultyName",
-    "email",
-    "unavailableSlots",
-    "maxLoad",
-  ]);
+  facultySheet.appendRow(["email", "unavailableSlots", "maxLoad"]);
 
   if (data.length < 2) {
     styleOutputSheet_(facultySheet);
@@ -113,23 +86,16 @@ function buildFacultySheet() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const facultyName = String(row[1] || "").trim();
-    const email = String(row[2] || "")
+    const email = String(row[0] || "")
       .trim()
       .toLowerCase();
-    const unavailableSlots = splitMultiSelect_(row[7]).map(normalizeTimeSlot_);
-    const maxLoad = Number(row[8] || 0);
+    const unavailableSlots = splitMultiSelect_(row[5]).map(normalizeTimeSlot_);
+    const maxLoad = Number(row[6] || 0);
 
-    const facultyId = email || facultyName;
-    if (!facultyId || seen[facultyId]) continue;
-    seen[facultyId] = true;
+    if (!email || seen[email]) continue; // no email, no way to track this professor
+    seen[email] = true;
 
-    facultySheet.appendRow([
-      facultyName,
-      email,
-      unavailableSlots.join(", "),
-      maxLoad,
-    ]);
+    facultySheet.appendRow([email, unavailableSlots.join(", "), maxLoad]);
   }
 
   styleOutputSheet_(facultySheet);
@@ -250,7 +216,6 @@ function generateSchedule() {
         course.courseName,
         course.section,
         picked.facultyId,
-        picked.facultyName,
         bestChoice.timeSlot,
         "ASSIGNED",
         buildAssignmentNote_(
@@ -261,7 +226,7 @@ function generateSchedule() {
         ),
       ]);
     } else {
-      const candidateFaculty = faculty.map((f) => f.facultyName).join(", ");
+      const candidateFaculty = faculty.map((f) => f.email).join(", ");
       const eligibleCount = faculty.length;
 
       const conflictType = classifyConflictType_(rejectionNotes, eligibleCount);
@@ -290,7 +255,6 @@ function generateSchedule() {
       "courseName",
       "section",
       "email",
-      "facultyName",
       "timeSlot",
       "status",
       "notes",
@@ -310,7 +274,7 @@ function generateSchedule() {
       "conflictType",
       "reason",
       "totalFacultyCount",
-      "candidateFaculty",
+      "candidateEmails",
     ],
     conflictRows,
   );
@@ -381,16 +345,11 @@ function getNormalizedFaculty_(sheet, prefSheet) {
       const email = String(pickField_(r, ["email", "Email"]) || "")
         .trim()
         .toLowerCase();
-      const facultyName = String(
-        pickField_(r, ["facultyName", "FacultyName", "name", "Name"]) || "",
-      ).trim();
-      const facultyId = email || facultyName;
       const fallbackMax =
         email && maxFromPrefs[email] ? maxFromPrefs[email] : "";
 
       return {
-        facultyId: facultyId,
-        facultyName: facultyName || facultyId,
+        facultyId: email,
         email: email,
         unavailableSlots: splitList_(
           pickField_(r, [
@@ -412,34 +371,15 @@ function getNormalizedFaculty_(sheet, prefSheet) {
 
 function getNormalizedPreferences_(sheet, facultyList) {
   const rows = sheetToObjects_(sheet);
-  const facultyByEmail = {};
-  const facultyByName = {};
-
-  facultyList.forEach((f) => {
-    if (f.email) facultyByEmail[f.email.toLowerCase()] = f.facultyId;
-    if (f.facultyName) facultyByName[f.facultyName.toLowerCase()] = f.facultyId;
-  });
 
   return rows
     .map((r) => {
       const email = String(pickField_(r, ["email", "Email"]) || "")
         .trim()
         .toLowerCase();
-      const name = String(
-        pickField_(r, ["facultyName", "FacultyName", "name", "Name"]) || "",
-      ).trim();
-      const directId = String(
-        pickField_(r, ["facultyId", "FacultyId", "id", "ID"]) || "",
-      ).trim();
-      const facultyId =
-        directId ||
-        facultyByEmail[email] ||
-        facultyByName[name.toLowerCase()] ||
-        email ||
-        name;
 
       return {
-        facultyId: facultyId,
+        facultyId: email,
         courseCode: normalizeCourseCode_(
           pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
         ),
@@ -1124,8 +1064,7 @@ function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText) {
     map[id] = { history: [] };
   }
 
-  // Each edit is pushed onto this cell's history. "Undo" pops the most
-  // recent entry (one step back); the note is rebuilt from whatever's left.
+  // Each edit is pushed onto this cell's history. "Undo" pops the most recent entry (one step back); the note is rebuilt from whatever's left.
   map[id].history.push({
     previousValue: isBulk ? null : rawOldValue,
     isBulk: !!isBulk,
@@ -1183,7 +1122,7 @@ function acceptAllChanges() {
   const ui = SpreadsheetApp.getUi();
   const resp = ui.alert(
     "Accept all tracked changes?",
-    "This confirms the current values are correct and removes the highlight colors and notes from tracked cells. The values themselves are kept as-is — nothing is reverted.",
+    "This confirms the current values are correct and removes the highlight colors and notes from tracked cells. The values themselves are kept as-is, nothing is reverted.",
     ui.ButtonSet.YES_NO,
   );
   if (resp !== ui.Button.YES) return;
@@ -1252,7 +1191,7 @@ function undoAllChanges() {
 
     if (history.length) {
       range.setNote(history.map((h) => h.noteText).join("\n\n"));
-      // Still has history left - stays highlighted.
+      // Still has history left, stays highlighted.
     } else {
       range.clearNote();
       range.setBackground(null);
