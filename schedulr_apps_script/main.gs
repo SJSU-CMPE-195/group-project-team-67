@@ -9,6 +9,7 @@ function onOpen() {
     .addItem("Validate schedule", "validateSchedule")
     .addSeparator()
     .addItem("View Change Log", "showChangeLog")
+    .addItem("View Changed Rows", "showChangedRows")
     .addItem("Clear Change Log", "clearChangeLog")
     .addItem("Jump to Next Change", "jumpToNextChange")
     .addItem("Accept All Changes", "acceptAllChanges")
@@ -906,6 +907,7 @@ function validateSchedule() {
 }
 
 const CHANGE_LOG_SHEET_NAME = "Change_Log";
+const CHANGED_ROWS_SHEET_NAME = "Changed_Rows";
 const CHANGE_HIGHLIGHT_COLOR = "#F4CCCC";
 const CHANGE_LOG_DATE_HEADER_COLOR = "#FFF2CC";
 const CHANGE_EXCLUDED_SHEETS = [
@@ -913,6 +915,7 @@ const CHANGE_EXCLUDED_SHEETS = [
   "Conflict_Summary",
   "Validation_Log",
   CHANGE_LOG_SHEET_NAME,
+  CHANGED_ROWS_SHEET_NAME,
 ];
 
 function onEdit(e) {
@@ -964,11 +967,12 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
   const previousText = isBulk
     ? "(bulk edit - previous value not captured)"
     : formatValueForNote_(oldValue);
+  const newText = formatValueForNote_(newValue);
 
   const entryText =
     previousText +
     " -> " +
-    formatValueForNote_(newValue) +
+    newText +
     "\nChanged by: " +
     user +
     "\nChanged at: " +
@@ -980,7 +984,7 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
     sheet.getName(),
     cell.getA1Notation(),
     previousText,
-    formatValueForNote_(newValue),
+    newText,
     user,
     now,
   );
@@ -993,6 +997,7 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
     entryText,
   );
   refreshCellNote_(sheet, cell.getA1Notation());
+  refreshChangedRowsSheet_();
 }
 
 function getEditingUser_() {
@@ -1025,13 +1030,16 @@ function logChange_(sheetName, a1, previousValue, newValue, user, timestamp) {
   if (!topRowIsToday) {
     // Insert a date-header row right under the column headers if new day, above whatever day was previously on top.
     logSheet.insertRowBefore(2);
-    const headerRange = logSheet.getRange(2, 1, 1, 6);
+    const headerRange = logSheet.getRange(2, 1, 1, 7);
     headerRange.setBackground(CHANGE_LOG_DATE_HEADER_COLOR);
     logSheet.getRange(2, 1).setValue(dayStart).setNumberFormat("M/d/yyyy");
   }
 
   // New entry always goes right under that day's header, so entries for the same day stack below their date row without touching earlier days.
+  // insertRowBefore copies the background of the adjacent row, so the new row picks up the date header's highlight - clear it explicitly.
+  // Column 7 (description) is left blank here — it's a manual field, only filled in if the user types into it directly.
   logSheet.insertRowBefore(3);
+  logSheet.getRange(3, 1, 1, 7).setBackground(null);
   logSheet
     .getRange(3, 1, 1, 6)
     .setValues([[timestamp, user, sheetName, a1, previousValue, newValue]]);
@@ -1057,11 +1065,68 @@ function getOrCreateChangeLogSheet_(ss) {
       "cell",
       "previousValue",
       "newValue",
+      "description",
     ]);
     styleOutputSheet_(sheet);
     sheet.hideSheet();
   }
   return sheet;
+}
+
+function getOrCreateChangedRowsSheet_(ss) {
+  let sheet = ss.getSheetByName(CHANGED_ROWS_SHEET_NAME);
+  if (!sheet) {
+    sheet = ss.insertSheet(CHANGED_ROWS_SHEET_NAME);
+    sheet.hideSheet();
+  }
+  return sheet;
+}
+
+function refreshChangedRowsSheet_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const map = raw ? JSON.parse(raw) : {};
+
+  // Group changed cells by sheet + row so each row is only pulled once.
+  const rowsBySheet = {};
+  Object.keys(map).forEach((id) => {
+    const parts = id.split("!");
+    const sheetName = parts[0];
+    const sheet = ss.getSheetByName(sheetName);
+    if (!sheet) return;
+    const row = sheet.getRange(parts[1]).getRow();
+    if (!rowsBySheet[sheetName]) rowsBySheet[sheetName] = [];
+    if (rowsBySheet[sheetName].indexOf(row) === -1)
+      rowsBySheet[sheetName].push(row);
+  });
+
+  const out = getOrCreateChangedRowsSheet_(ss);
+  out.clear();
+
+  let outRow = 1;
+  Object.keys(rowsBySheet).forEach((sheetName) => {
+    const sheet = ss.getSheetByName(sheetName);
+    const lastCol = sheet ? sheet.getLastColumn() : 0;
+    if (!sheet || !lastCol) return;
+
+    out.getRange(outRow, 1).setValue(sheetName).setFontWeight("bold");
+    outRow++;
+    out
+      .getRange(outRow, 1, 1, lastCol)
+      .setValues(sheet.getRange(1, 1, 1, lastCol).getValues());
+    outRow++;
+
+    rowsBySheet[sheetName]
+      .sort((a, b) => a - b)
+      .forEach((row) => {
+        out
+          .getRange(outRow, 1, 1, lastCol)
+          .setValues(sheet.getRange(row, 1, 1, lastCol).getValues());
+        outRow++;
+      });
+    outRow++;
+  });
 }
 
 function clearTrackedChangesForSheet_(ss, sheetName) {
@@ -1083,6 +1148,7 @@ function clearTrackedChangesForSheet_(ss, sheetName) {
     if (id.split("!")[0] !== sheetName) filtered[id] = map[id];
   });
   props.setProperty("pendingChanges", JSON.stringify(filtered));
+  refreshChangedRowsSheet_();
 }
 
 function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText) {
@@ -1179,6 +1245,7 @@ function acceptAllChanges() {
 
   props.deleteProperty("pendingChanges");
   props.deleteProperty("pendingChangeIndex");
+  refreshChangedRowsSheet_();
   ui.alert("Accepted " + ids.length + " change(s).");
 }
 
@@ -1232,6 +1299,7 @@ function undoAllChanges() {
   });
 
   props.setProperty("pendingChanges", JSON.stringify(map));
+  refreshChangedRowsSheet_();
 
   ui.alert(
     "Undid " +
@@ -1271,6 +1339,13 @@ function clearChangeLog() {
 function showChangeLog() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const sheet = getOrCreateChangeLogSheet_(ss);
+  sheet.showSheet();
+  ss.setActiveSheet(sheet);
+}
+
+function showChangedRows() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = getOrCreateChangedRowsSheet_(ss);
   sheet.showSheet();
   ss.setActiveSheet(sheet);
 }
