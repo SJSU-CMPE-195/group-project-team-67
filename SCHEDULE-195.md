@@ -17,7 +17,7 @@
 | 4/10/26 | 20 min   | Remote             | Everyone               | Discussed updates, checkpoints, and next steps | sync all different appscript functions into one sheet, implementation of visualizing a schedule, and to contact further for course dataset from previous semesters |
 | 9/1/26  | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Create a prior history function that can view previous edits to the schedule, implement seat count if information is publicly accessible                           |
 | 9/8/26  | 60 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Undo instead of reset all changes, column to show what's completed, track log, track log by date, difference between class size and room cap, show room cap        |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 9/15/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find a way to delete the rows, implement sample schedule and use scenario for testing, try using CI/CD principles                                                  |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
@@ -220,7 +220,7 @@
 
 ---
 
-### [9/1/2026] - [Advisor] Meeting
+### [9/8/2026] - [Advisor] Meeting
 
 **Attendees:**
 
@@ -240,6 +240,7 @@
 - Aquire .pdf file for room sizes
 - Link Prof. Jorjeta sent (doesn't look like its updated):https://prd-analytics.sjsu.edu/#/site/ir/home
 - EXTRA: Tampermonkey to grab waitlists later
+  
 **Decisions:**
 
 **Action Items:**
@@ -248,7 +249,32 @@
 - [ ] [Tracklog by date/description] - [Everyone] - [Next advisor meeting]
 - [ ] [Swap functionality (Room Cap)] - [Everyone] - [Next advisor meeting]
 - [ ] [Column showing completion] - [Everyone] - [Next advisor meeting]
+
 ---
+
+### [9/15/2026] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+  
+**Discussion:**
+- Find a way to delete the rows
+- Need a sample schedule from Professor Rojas (preference sheet from Professor Jetcheva)
+- Have to execute a sample scenario for testing (trial)
+- Try to implement CI/CD principles on GitHub for Google AppScript if possible
+- Potential to meet biweekly for progress checks
+  
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Delete rows] - [Everyone] - [Next advisor meeting]
+- [ ] [Test sample scenario] - [Everyone] - [Next advisor meeting]
+- [ ] [CI/CD principles for Google Appscript] - [Everyone] - [Next advisor meeting]
+
+---
+
 
 ### [Date] - [Advisor/Team] Meeting
 
