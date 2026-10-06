@@ -18,7 +18,7 @@
 | 9/1/26  | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Create a prior history function that can view previous edits to the schedule, implement seat count if information is publicly accessible                           |
 | 9/8/26  | 60 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Undo instead of reset all changes, column to show what's completed, track log, track log by date, difference between class size and room cap, show room cap        |
 | 9/15/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find a way to delete the rows, implement sample schedule and use scenario for testing, try using CI/CD principles                                                  |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 9/30/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find the way to implement the .pdf room data to the broader schedule                                                                                               |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
@@ -275,6 +275,25 @@
 
 ---
 
+
+### [9/30/2026] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+
+**Discussion:**
+
+- Look at Room number, enrollment capacity, room capacity from given .pdf (email)
+
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Follow prior guidelines] - [Everyone] - [Next advisor meeting]
+- [ ] [Review class file to implement on the schedule] - [Everyone] - [Next advisor meeting]
+
+---
 
 ### [Date] - [Advisor/Team] Meeting
 
