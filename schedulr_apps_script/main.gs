@@ -15,7 +15,13 @@ function onOpen() {
     .addItem("Accept All Changes", "acceptAllChanges")
     .addItem("Undo Changes", "undoAllChanges")
     .addToUi();
+    SpreadsheetApp.getUi()
+    .createMenu("Courses")
+    .addItem("Update Courses", "update_courses")
+    .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
+    .addToUi();
 }
+
 
 function cleanPreferences() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
