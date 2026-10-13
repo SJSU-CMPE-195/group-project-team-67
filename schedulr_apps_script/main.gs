@@ -940,7 +940,7 @@ function onEdit(e) {
     if (numCells === 1) {
       const oldValue = e.oldValue !== undefined ? e.oldValue : "";
       const newValue = e.value !== undefined ? e.value : e.range.getValue();
-      if (String(oldValue) === String(newValue)) return;
+      if (normalizeValue_(oldValue) === normalizeValue_(newValue)) return;
       recordChange_(sheet, e.range, oldValue, newValue, false);
     } else {
       // Multi-cell edit - no per-cell old values available from the event.
@@ -962,8 +962,44 @@ function onEdit(e) {
 }
 
 function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
+  const a1 = cell.getA1Notation();
+  const id = sheet.getName() + "!" + a1;
   const user = getEditingUser_();
   const now = new Date();
+
+  // --- Revert detection: value went back to its original ---
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const map = raw ? JSON.parse(raw) : {};
+  const existing = map[id];
+  const newValueText = normalizeValue_(newValue);
+  
+  if (
+    existing &&
+    existing.hasOriginal &&
+    normalizeValue_(existing.originalValue) === newValueText
+  ) {
+    // Untrack this cell: no highlight, no note, no pending entry
+    delete map[id];
+    props.setProperty("pendingChanges", JSON.stringify(map));
+    cell.setBackground(null);
+    cell.clearNote();
+
+    // Optional audit entry. Delete this call if you don't want reverts in Change_Log.
+    logChange_(
+      sheet.getName(),
+      a1,
+      formatValueForNote_(oldValue),
+      formatValueForNote_(newValue) + " (reverted to original)",
+      user,
+      now,
+    );
+
+    refreshChangedRowsSheet_();
+    return;
+  }
+  // --- End revert detection ---
+
   const timestamp = Utilities.formatDate(
     now,
     Session.getScriptTimeZone(),
@@ -986,23 +1022,10 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
 
   cell.setBackground(CHANGE_HIGHLIGHT_COLOR);
 
-  logChange_(
-    sheet.getName(),
-    cell.getA1Notation(),
-    previousText,
-    newText,
-    user,
-    now,
-  );
+  logChange_(sheet.getName(), a1, previousText, newText, user, now);
 
-  addPendingChange_(
-    sheet.getName(),
-    cell.getA1Notation(),
-    oldValue,
-    isBulk,
-    entryText,
-  );
-  refreshCellNote_(sheet, cell.getA1Notation());
+  addPendingChange_(sheet.getName(), a1, oldValue, isBulk, entryText);
+  refreshCellNote_(sheet, a1);
   refreshChangedRowsSheet_();
 }
 
@@ -1015,8 +1038,17 @@ function getEditingUser_() {
   }
 }
 
+function normalizeValue_(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value).trim();
+  if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(text)) {
+    return String(Number(text));
+  }
+  return text;
+}
+
 function formatValueForNote_(value) {
-  const text = String(value === null || value === undefined ? "" : value);
+  const text = normalizeValue_(value);
   return text === "" ? "(empty)" : text;
 }
 
@@ -1165,10 +1197,13 @@ function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText) {
   const id = sheetName + "!" + a1;
 
   if (!map[id]) {
-    map[id] = { history: [] };
+    map[id] = {
+      history: [],
+      originalValue: isBulk ? null : (rawOldValue === undefined ? "" : rawOldValue),
+      hasOriginal: !isBulk,
+    };
   }
 
-  // Each edit is pushed onto this cell's history. "Undo" pops the most recent entry (one step back); the note is rebuilt from whatever's left.
   map[id].history.push({
     previousValue: isBulk ? null : rawOldValue,
     isBulk: !!isBulk,
