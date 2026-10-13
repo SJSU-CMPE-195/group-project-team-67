@@ -68,7 +68,8 @@ function comparing_rooms_size() {
         candidate.openSeats <= 2 ||
         candidate.days !== closedSection.days ||
         candidate.times !== closedSection.times ||
-        candidate.capacity <= closedSection.capacity
+        candidate.capacity < closedSection.capacity ||
+        candidate.capacity - candidate.openSeats > closedSection.capacity
       ) {
         return;
       }
@@ -101,15 +102,15 @@ function comparing_rooms_size() {
   const output = [
     [
       "Closed Course",
-      "Closed Section",
+      "Section",
       "Days",
       "Times",
       "Current Room",
-      "Current Capacity",
+      "Capacity",
       "Available Course",
-      "Available Section",
-      "Available Room",
-      "Available Capacity",
+      "Section",
+      "Room",
+      "Capacity",
       "Available Open Seats",
       "Capacity Gain",
     ],
@@ -213,7 +214,7 @@ function crShowSwapDialog_(swaps) {
         ? " Showing the first " + previewLimit + "."
         : "") +
       "</p><table border='1' cellpadding='5' cellspacing='0'>" +
-      "<tr><th>Closed Section</th><th>Current Room</th><th></th><th>Available Section</th><th>Available Room</th></tr>" +
+      "<tr><th>Section</th><th>Current Room</th><th></th><th>Section</th><th>Room</th></tr>" +
       rows +
       "</table>"
     : "<p>No valid room swaps were found.</p><p>A valid swap requires the same day and time, more than 2 open seats, and a larger available room.</p>";
