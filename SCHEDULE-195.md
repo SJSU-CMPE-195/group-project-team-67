@@ -20,7 +20,7 @@
 | 9/15/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find a way to delete the rows, implement sample schedule and use scenario for testing, try using CI/CD principles                                                  |
 | 9/30/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find the way to implement the .pdf room data to the broader schedule                                                                                               |
 | 10/6/26 | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Improve the version control and see what future changes to implement when main excel file is recieved                                                          |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 10/13/26| 35 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Get the accurate timings from the assistant and the main excel file with redactions                                                                                                                                                                                                                                                  |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
@@ -313,6 +313,28 @@
 **Action Items:**
 
 - [ ] [Better version control] - [Everyone] - [Next advisor meeting]
+- [ ] [Deployment Strategy (*either plug-in/extension*)] - [Everyone] - [Next advisor meeting]
+
+---
+
+### [10/13/26] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+
+**Discussion:**
+
+- Change the version control to show the changes, but without the highlights in 'open seats'
+- Need to get accurate schedules from assistant
+- Need emailed main excel sheet with redactions from Professor Rojas
+- Look at deployment strategy (e.g. template, plug-in/extension
+- )
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Version control without highlights for same cell] - [Everyone] - [Next advisor meeting]
 - [ ] [Deployment Strategy (*either plug-in/extension*)] - [Everyone] - [Next advisor meeting]
 
 ---
