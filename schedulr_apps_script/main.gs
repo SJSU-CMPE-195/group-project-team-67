@@ -940,7 +940,7 @@ function onEdit(e) {
     if (numCells === 1) {
       const oldValue = e.oldValue !== undefined ? e.oldValue : "";
       const newValue = e.value !== undefined ? e.value : e.range.getValue();
-      if (String(oldValue) === String(newValue)) return;
+      if (normalizeValue_(oldValue) === normalizeValue_(newValue)) return;
       recordChange_(sheet, e.range, oldValue, newValue, false);
     } else {
       // Multi-cell edit - no per-cell old values available from the event.
@@ -972,13 +972,12 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
   const raw = props.getProperty("pendingChanges");
   const map = raw ? JSON.parse(raw) : {};
   const existing = map[id];
-  const newValueText =
-    newValue === null || newValue === undefined ? "" : String(newValue);
-
+  const newValueText = normalizeValue_(newValue);
+  
   if (
     existing &&
     existing.hasOriginal &&
-    String(existing.originalValue) === newValueText
+    normalizeValue_(existing.originalValue) === newValueText
   ) {
     // Untrack this cell: no highlight, no note, no pending entry
     delete map[id];
@@ -1039,8 +1038,17 @@ function getEditingUser_() {
   }
 }
 
+function normalizeValue_(value) {
+  if (value === null || value === undefined) return "";
+  const text = String(value).trim();
+  if (/^-?\d+(\.\d+)?([eE][+-]?\d+)?$/.test(text)) {
+    return String(Number(text));
+  }
+  return text;
+}
+
 function formatValueForNote_(value) {
-  const text = String(value === null || value === undefined ? "" : value);
+  const text = normalizeValue_(value);
   return text === "" ? "(empty)" : text;
 }
 
