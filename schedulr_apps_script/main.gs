@@ -19,6 +19,8 @@ function onOpen() {
     .createMenu("Courses")
     .addItem("Update Courses", "update_courses")
     .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
+    .addItem("Pull Semester", "pulled_semester")
+    .addItem("Create blank schedule", "create_blank_schedule")
     .addToUi();
 }
 
