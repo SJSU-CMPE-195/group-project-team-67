@@ -966,44 +966,20 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
   const id = sheet.getName() + "!" + a1;
   const user = getEditingUser_();
   const now = new Date();
-
-  // --- Revert detection: value went back to its original ---
-  const props = PropertiesService.getDocumentProperties();
-  const raw = props.getProperty("pendingChanges");
-  const map = raw ? JSON.parse(raw) : {};
-  const existing = map[id];
-  const newValueText = normalizeValue_(newValue);
-  
-  if (
-    existing &&
-    existing.hasOriginal &&
-    normalizeValue_(existing.originalValue) === newValueText
-  ) {
-    // Untrack this cell: no highlight, no note, no pending entry
-    delete map[id];
-    props.setProperty("pendingChanges", JSON.stringify(map));
-    cell.setBackground(null);
-    cell.clearNote();
-
-    // Optional audit entry. Delete this call if you don't want reverts in Change_Log.
-    logChange_(
-      sheet.getName(),
-      a1,
-      formatValueForNote_(oldValue),
-      formatValueForNote_(newValue) + " (reverted to original)",
-      user,
-      now,
-    );
-
-    refreshChangedRowsSheet_();
-    return;
-  }
-  // --- End revert detection ---
-
   const timestamp = Utilities.formatDate(
     now,
     Session.getScriptTimeZone(),
     "MM/dd/yyyy HH:mm",
+  );
+
+  const props = PropertiesService.getDocumentProperties();
+  const raw = props.getProperty("pendingChanges");
+  const map = raw ? JSON.parse(raw) : {};
+  const existing = map[id];
+  const isRevert = !!(
+    existing &&
+    existing.hasOriginal &&
+    normalizeValue_(existing.originalValue) === normalizeValue_(newValue)
   );
 
   const previousText = isBulk
@@ -1020,11 +996,10 @@ function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
     "\nChanged at: " +
     timestamp;
 
-  cell.setBackground(CHANGE_HIGHLIGHT_COLOR);
+  cell.setBackground(isRevert ? null : CHANGE_HIGHLIGHT_COLOR);
 
   logChange_(sheet.getName(), a1, previousText, newText, user, now);
-
-  addPendingChange_(sheet.getName(), a1, oldValue, isBulk, entryText);
+  addPendingChange_(sheet.getName(), a1, oldValue, isBulk, entryText, isRevert);
   refreshCellNote_(sheet, a1);
   refreshChangedRowsSheet_();
 }
@@ -1189,7 +1164,7 @@ function clearTrackedChangesForSheet_(ss, sheetName) {
   refreshChangedRowsSheet_();
 }
 
-function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText) {
+function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText, isReverted) {
   const props = PropertiesService.getDocumentProperties();
   const key = "pendingChanges";
   const raw = props.getProperty(key);
@@ -1203,6 +1178,8 @@ function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText) {
       hasOriginal: !isBulk,
     };
   }
+
+  map[id].reverted = !!isReverted;
 
   map[id].history.push({
     previousValue: isBulk ? null : rawOldValue,
