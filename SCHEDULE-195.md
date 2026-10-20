@@ -21,7 +21,7 @@
 | 9/30/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find the way to implement the .pdf room data to the broader schedule                                                                                               |
 | 10/6/26 | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Improve the version control and see what future changes to implement when main excel file is recieved                                                          |
 | 10/13/26| 35 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Get the accurate timings from the assistant and the main excel file with redactions                                                                                                                                                                                                                                                  |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 10/20/26| 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Organize the Google Sheet and look into writing a guide for others to reference                                                                                                                                                                                                                                                  |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 
@@ -328,14 +328,39 @@
 - Change the version control to show the changes, but without the highlights in 'open seats'
 - Need to get accurate schedules from assistant
 - Need emailed main excel sheet with redactions from Professor Rojas
-- Look at deployment strategy (e.g. template, plug-in/extension
-- )
+- Look at deployment strategy (e.g. template, plug-in/extension)
+  
 **Decisions:**
 
 **Action Items:**
 
 - [ ] [Version control without highlights for same cell] - [Everyone] - [Next advisor meeting]
 - [ ] [Deployment Strategy (*either plug-in/extension*)] - [Everyone] - [Next advisor meeting]
+
+---
+
+### [10/20/26] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+
+**Discussion:**
+
+- Open on the browser on incognito (pulling the CMPE courses)
+- Clean sheets that are not needed and organize the file (polish deployment)
+- Add the README
+- Try to experiment outside of Google Sheets (e.g. React) *optional*
+- Have a helping guide on how to operate on the sheets (Create like a tutorial, writing is better)
+- Work on [AG] Implementation 2: Prototype
+
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Pull the CMPE courses on different browsers (incognito)] - [Everyone] - [Next advisor meeting]
+- [ ] [Organize the sheet into a cleaner state] - [Everyone] - [Next advisor meeting]
+- [ ] [Tutorial/Guide on how to operate sheets] - [Everyone] - [Next advisor meeting]
 
 ---
 
