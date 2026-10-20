@@ -15,15 +15,19 @@ function onOpen() {
     .addItem("Accept All Changes", "acceptAllChanges")
     .addItem("Undo Changes", "undoAllChanges")
     .addToUi();
-    SpreadsheetApp.getUi()
+  SpreadsheetApp.getUi()
     .createMenu("Courses")
     .addItem("Update Courses", "update_courses")
     .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
     .addItem("Pull Semester", "pulled_semester")
     .addItem("Create blank schedule", "create_blank_schedule")
     .addToUi();
+  try {
+    seedSnapshots();
+  } catch (err) {
+    console.error(err);
+  }
 }
-
 
 function cleanPreferences() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -699,6 +703,7 @@ function mustGetSheet_(ss, name) {
 }
 
 function styleOutputSheet_(sheet) {
+  reseedSheet_(sheet);
   if (sheet.getLastRow() === 0 || sheet.getLastColumn() === 0) return;
   sheet.getRange(1, 1, 1, sheet.getLastColumn()).setFontWeight("bold");
   sheet.setFrozenRows(1);
@@ -926,43 +931,6 @@ const CHANGE_EXCLUDED_SHEETS = [
   CHANGED_ROWS_SHEET_NAME,
 ];
 
-function onEdit(e) {
-  try {
-    if (!e || !e.range) return;
-
-    const sheet = e.range.getSheet();
-    const sheetName = sheet.getName();
-    if (CHANGE_EXCLUDED_SHEETS.indexOf(sheetName) !== -1) return;
-
-    // Don't track edits to the header row.
-    if (e.range.getRow() === 1 && e.range.getNumRows() === 1) return;
-
-    const numCells = e.range.getNumRows() * e.range.getNumColumns();
-
-    if (numCells === 1) {
-      const oldValue = e.oldValue !== undefined ? e.oldValue : "";
-      const newValue = e.value !== undefined ? e.value : e.range.getValue();
-      if (normalizeValue_(oldValue) === normalizeValue_(newValue)) return;
-      recordChange_(sheet, e.range, oldValue, newValue, false);
-    } else {
-      // Multi-cell edit - no per-cell old values available from the event.
-      const values = e.range.getValues();
-      for (let r = 0; r < values.length; r++) {
-        for (let c = 0; c < values[r].length; c++) {
-          const cell = sheet.getRange(
-            e.range.getRow() + r,
-            e.range.getColumn() + c,
-          );
-          recordChange_(sheet, cell, null, values[r][c], true);
-        }
-      }
-    }
-  } catch (err) {
-    // Never let tracking errors block the user's actual edit.
-    console.error(err);
-  }
-}
-
 function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
   const a1 = cell.getA1Notation();
   const id = sheet.getName() + "!" + a1;
@@ -1166,7 +1134,14 @@ function clearTrackedChangesForSheet_(ss, sheetName) {
   refreshChangedRowsSheet_();
 }
 
-function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText, isReverted) {
+function addPendingChange_(
+  sheetName,
+  a1,
+  rawOldValue,
+  isBulk,
+  entryText,
+  isReverted,
+) {
   const props = PropertiesService.getDocumentProperties();
   const key = "pendingChanges";
   const raw = props.getProperty(key);
@@ -1176,7 +1151,11 @@ function addPendingChange_(sheetName, a1, rawOldValue, isBulk, entryText, isReve
   if (!map[id]) {
     map[id] = {
       history: [],
-      originalValue: isBulk ? null : (rawOldValue === undefined ? "" : rawOldValue),
+      originalValue: isBulk
+        ? null
+        : rawOldValue === undefined
+          ? ""
+          : rawOldValue,
       hasOriginal: !isBulk,
     };
   }
@@ -1305,6 +1284,7 @@ function undoAllChanges() {
       skipped++;
     } else {
       range.setValue(last.previousValue);
+      syncSnapshotRange_(sheet, range);
       undone++;
     }
 
