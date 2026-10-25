@@ -5,8 +5,6 @@ function onOpen() {
     .addItem("Build faculty sheet", "buildFacultySheet")
     .addItem("Generate schedule", "generateSchedule")
     // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
-    .addItem("Generate conflict summary", "generateConflictSummary")
-    .addItem("Validate schedule", "validateSchedule")
     .addSeparator()
     .addItem("View Change Log", "showChangeLog")
     .addItem("View Changed Rows", "showChangedRows")
@@ -249,7 +247,6 @@ function generateSchedule() {
   if (!timeSlots.length) throw new Error("No usable time slots found.");
 
   const scheduleRows = [];
-  const conflictRows = [];
   const facultyLoad = {};
   const facultyAssignments = {};
 
@@ -267,7 +264,6 @@ function generateSchedule() {
       ? course.termsOffered
       : ["Spring"];
     let bestChoice = null;
-    const rejectionNotes = [];
 
     for (const term of allowedTerms) {
       for (const slot of timeSlots) {
@@ -313,8 +309,6 @@ function generateSchedule() {
               timeSlot: slot,
             };
           }
-        } else {
-          rejectionNotes.push("No faculty fits " + term + " / " + slot);
         }
       }
     }
@@ -344,24 +338,6 @@ function generateSchedule() {
           preferences,
         ),
       ]);
-    } else {
-      const candidateFaculty = faculty.map((f) => f.email).join(", ");
-      const eligibleCount = faculty.length;
-
-      const conflictType = classifyConflictType_(rejectionNotes, eligibleCount);
-
-      conflictRows.push([
-        course.courseCode,
-        course.courseName,
-        allowedTerms.join(", "),
-        course.section,
-        course.allowedTimeSlots.join(", ") || "Any standard slot",
-        conflictType,
-        collapseReasons_(rejectionNotes) ||
-          "No valid professor + time slot combination found",
-        eligibleCount,
-        candidateFaculty || "None",
-      ]);
     }
   });
 
@@ -379,23 +355,6 @@ function generateSchedule() {
       "notes",
     ],
     scheduleRows,
-  );
-
-  writeSheet_(
-    ss,
-    "Conflicts",
-    [
-      "courseCode",
-      "courseName",
-      "termsTried",
-      "section",
-      "timeSlotOptions",
-      "conflictType",
-      "reason",
-      "totalFacultyCount",
-      "candidateEmails",
-    ],
-    conflictRows,
   );
 }
 
@@ -650,21 +609,6 @@ function hasTimeConflict_(faculty, term, timeSlot, facultyAssignments) {
   );
 }
 
-function collapseReasons_(reasons) {
-  return uniqueList_(reasons.filter(Boolean)).slice(0, 8).join("; ");
-}
-
-function classifyConflictType_(reasons, totalFacultyCount) {
-  if (totalFacultyCount === 0) return "NO_FACULTY_AVAILABLE";
-  const text = reasons.join(" ").toLowerCase();
-  if (text.includes("overload") || text.includes("max load"))
-    return "MAX_LOAD_REACHED";
-  if (text.includes("time conflict") || text.includes("already uses"))
-    return "TIME_CONFLICT";
-  if (text.includes("no faculty fits")) return "ALL_SLOTS_BLOCKED";
-  return "NO_VALID_COMBINATION";
-}
-
 function expandCourses_(courses) {
   const expanded = [];
   courses.forEach((course) => {
@@ -816,226 +760,11 @@ function styleOutputSheet_(sheet) {
   sheet.autoResizeColumns(1, sheet.getLastColumn());
 }
 
-function generateConflictSummary() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const conflictSheet = ss.getSheetByName("Conflicts");
-  if (!conflictSheet || conflictSheet.getLastRow() < 2) {
-    SpreadsheetApp.getUi().alert(
-      "No conflicts found. Run Generate Schedule first.",
-    );
-    return;
-  }
-
-  const rows = sheetToObjects_(conflictSheet);
-  const counts = {
-    NO_FACULTY_AVAILABLE: 0,
-    MAX_LOAD_REACHED: 0,
-    TIME_CONFLICT: 0,
-    ALL_SLOTS_BLOCKED: 0,
-    NO_VALID_COMBINATION: 0,
-  };
-
-  rows.forEach((r) => {
-    const type = String(r["conflictType"] || "").trim();
-    if (counts.hasOwnProperty(type)) counts[type]++;
-    else counts["NO_VALID_COMBINATION"]++;
-  });
-
-  const summarySheet = getOrCreateSheet_(ss, "Conflict_Summary");
-  summarySheet.clear();
-  summarySheet.getRange(1, 1, 1, 2).setValues([["conflictType", "count"]]);
-
-  const summaryRows = Object.entries(counts).map(([type, count]) => [
-    type,
-    count,
-  ]);
-  summarySheet.getRange(2, 1, summaryRows.length, 2).setValues(summaryRows);
-
-  // Color-code by severity
-  const colorMap = {
-    NO_FACULTY_AVAILABLE: "#F4CCCC", // red - no faculty at all to draw from
-    MAX_LOAD_REACHED: "#FCE8B2", // yellow - adjust maxLoad
-    TIME_CONFLICT: "#FFF2CC", // light yellow - slot overlap
-    ALL_SLOTS_BLOCKED: "#FCE8B2", // yellow - availability too narrow
-    NO_VALID_COMBINATION: "#D9EAD3", // green - minor, mixed causes
-  };
-
-  summaryRows.forEach((row, i) => {
-    const color = colorMap[row[0]] || "#FFFFFF";
-    summarySheet.getRange(i + 2, 1, 1, 2).setBackground(color);
-  });
-
-  styleOutputSheet_(summarySheet);
-}
-
-function validateSchedule() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-
-  const outputSheet = ss.getSheetByName("ScheduleOutput");
-  if (!outputSheet || outputSheet.getLastRow() < 2) {
-    SpreadsheetApp.getUi().alert(
-      "No schedule found. Run Generate Schedule first.",
-    );
-    return;
-  }
-
-  const coursesSheet = ss.getSheetByName("Courses");
-
-  const scheduleRows = sheetToObjects_(outputSheet);
-  const courseRows = coursesSheet ? getNormalizedCourses_(coursesSheet) : [];
-
-  const logRows = [];
-  const facultySlotMap = {}; // facultyId -> [term|timeSlot, ...]
-  const facultyLoadMap = {}; // facultyId -> count
-  const courseSectionMap = {}; // courseCode -> count assigned
-
-  // Build expected sections needed from Courses sheet
-  const sectionsNeeded = {};
-  courseRows.forEach((c) => {
-    sectionsNeeded[c.courseCode] = Number(c.sectionsNeeded || 1);
-  });
-
-  scheduleRows.forEach((row, i) => {
-    const rowNum = i + 2; // account for header row
-    const facultyId = String(row["email"] || "").trim();
-    const courseCode = normalizeCourseCode_(row["courseCode"] || "");
-    const timeSlot = normalizeTimeSlot_(row["timeSlot"] || "");
-    const term = String(row["term"] || "").trim();
-
-    if (!facultyId || !courseCode || !timeSlot || !term) {
-      logRows.push([
-        rowNum,
-        courseCode,
-        facultyId,
-        "FAIL",
-        "MISSING_DATA",
-        "Row is missing one or more required fields",
-      ]);
-      return;
-    }
-
-    // Check 1: duplicate faculty time slot (professor double-booked)
-    const slotKey = facultyId + "|" + term + "|" + timeSlot;
-    if (!facultySlotMap[facultyId]) facultySlotMap[facultyId] = [];
-    if (facultySlotMap[facultyId].includes(slotKey)) {
-      logRows.push([
-        rowNum,
-        courseCode,
-        facultyId,
-        "FAIL",
-        "DOUBLE_BOOKED",
-        facultyId + " is assigned to two courses in " + term + " / " + timeSlot,
-      ]);
-    } else {
-      facultySlotMap[facultyId].push(slotKey);
-    }
-
-    // Track load and section counts for checks 2 and 3
-    facultyLoadMap[facultyId] = (facultyLoadMap[facultyId] || 0) + 1;
-    courseSectionMap[courseCode] = (courseSectionMap[courseCode] || 0) + 1;
-  });
-
-  // Check 2: max load exceeded
-  // Re-read faculty sheet to get maxLoad per faculty
-  const facultySheet = ss.getSheetByName("Faculty");
-  if (facultySheet && facultySheet.getLastRow() > 1) {
-    const facultyRows = sheetToObjects_(facultySheet);
-    facultyRows.forEach((f) => {
-      const facultyId = String(f["email"] || "").trim();
-      const maxLoad = Number(f["maxLoad"] || 0);
-      const assigned = facultyLoadMap[facultyId] || 0;
-      if (maxLoad > 0 && assigned > maxLoad) {
-        logRows.push([
-          "-",
-          "-",
-          facultyId,
-          "FAIL",
-          "OVERLOAD",
-          facultyId +
-            " is assigned " +
-            assigned +
-            " courses but maxLoad is " +
-            maxLoad,
-        ]);
-      }
-    });
-  }
-
-  // Check 3: sections assigned vs sections needed
-  courseRows.forEach((c) => {
-    const needed = Number(c.sectionsNeeded || 1);
-    const assigned = courseSectionMap[c.courseCode] || 0;
-    if (assigned < needed) {
-      logRows.push([
-        "-",
-        c.courseCode,
-        "-",
-        "FAIL",
-        "MISSING_SECTIONS",
-        c.courseCode +
-          " needed " +
-          needed +
-          " section(s) but only " +
-          assigned +
-          " were assigned",
-      ]);
-    }
-  });
-
-  // Write to Validation_Log sheet
-  const logSheet = getOrCreateSheet_(ss, "Validation_Log");
-  logSheet.clear();
-  logSheet
-    .getRange(1, 1, 1, 6)
-    .setValues([
-      [
-        "scheduleRow",
-        "courseCode",
-        "email",
-        "result",
-        "checkType",
-        "description",
-      ],
-    ]);
-
-  if (logRows.length === 0) {
-    logSheet
-      .getRange(2, 1, 1, 6)
-      .setValues([
-        ["-", "-", "-", "PASS", "ALL_CHECKS", "No violations found"],
-      ]);
-    logSheet.getRange(2, 1, 1, 6).setBackground("#B7E1CD"); // green
-  } else {
-    logSheet.getRange(2, 1, logRows.length, 6).setValues(logRows);
-    logRows.forEach((row, i) => {
-      const color = row[3] === "PASS" ? "#B7E1CD" : "#F4CCCC"; // green or red
-      logSheet.getRange(i + 2, 4, 1, 1).setBackground(color);
-    });
-  }
-
-  styleOutputSheet_(logSheet);
-
-  const failCount = logRows.filter((r) => r[3] === "FAIL").length;
-  SpreadsheetApp.getUi().alert(
-    failCount === 0
-      ? "Validation passed. No violations found."
-      : "Validation found " +
-          failCount +
-          " issue(s). See Validation_Log sheet.",
-  );
-}
-
 const CHANGE_LOG_SHEET_NAME = "Change_Log";
 const CHANGED_ROWS_SHEET_NAME = "Changed_Rows";
 const CHANGE_HIGHLIGHT_COLOR = "#F4CCCC";
 const CHANGE_LOG_DATE_HEADER_COLOR = "#FFF2CC";
-const CHANGE_EXCLUDED_SHEETS = [
-  "Conflicts",
-  "Conflict_Summary",
-  "Validation_Log",
-  CHANGE_LOG_SHEET_NAME,
-  CHANGED_ROWS_SHEET_NAME,
-];
+const CHANGE_EXCLUDED_SHEETS = [CHANGE_LOG_SHEET_NAME, CHANGED_ROWS_SHEET_NAME];
 
 function recordChange_(sheet, cell, oldValue, newValue, isBulk) {
   const a1 = cell.getA1Notation();
