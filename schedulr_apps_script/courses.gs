@@ -1,3 +1,10 @@
+/**
+ * Synchronizes the Schedule sheet with the public SJSU Fall 2026 schedule.
+ *
+ * Existing Schedule rows are matched by Course + Section. Only the mapped
+ * schedule fields are updated. Missing sections are inserted below the last
+ * existing section for that course, or appended if the course has no row yet.
+ */
 function update_courses() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const scheduleSheet = ss.getActiveSheet();
