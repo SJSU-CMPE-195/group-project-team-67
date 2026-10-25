@@ -1,6 +1,6 @@
 # Schedulr
 
-> A constraint-based faculty scheduling tool that automatically assigns professors to courses and generates time slots based on preferences, availability, and eligibility.
+> A constraint-based faculty scheduling tool that automatically assigns professors to courses and generates time slots based on preferences and availability.
 
 ## Team
 
@@ -20,14 +20,14 @@ Departments plan CMPE and SE course offerings in manual spreadsheets, which make
 
 ## Prototype Scope
 
-***Works end to end now***
+**_Works end to end now_**
 
 - Pipeline: Google Form → Clean preferences → Build faculty sheet → Generate schedule → ScheduleOutput sheet
 - Greedy assignment of professors to course sections and time slots, constrained by instructor availability, maximum teaching load, and time conflicts (a professor cannot hold two sections in the same term and slot)
 - Change tracking on schedule sheets
 - Course data tools (Courses menu): pull SJSU semester sections, update the schedule sheet from the SJSU Fall 2026 schedule, create a blank schedule from a pulled semester, fill a schedule from form responses, and compare room sizes against a Rooms sheet
 
-***Incomplete / left for the Expo***
+**_Incomplete / left for the Expo_**
 
 - Scheduling is greedy, with no optimization beyond that
 - Room planning is not integrated into schedule generation
@@ -37,7 +37,7 @@ Departments plan CMPE and SE course offerings in manual spreadsheets, which make
 
 ![System Architecture](docs/screenshots/sysarch.png)
 
-All logic lives in Google Apps Script bound to one Google Sheet. Change tracking uses onEdit plus hidden _snap_<SheetName> mirror sheets to recover old values on bulk edits. Code is synced to Apps Script with clasp.
+All logic lives in Google Apps Script bound to one Google Sheet. Change tracking uses onEdit plus hidden `_snap_<SheetName>` mirror sheets to recover old values on bulk edits. Code is synced to Apps Script with clasp.
 
 ## Prerequisites
 
@@ -68,7 +68,9 @@ npm install -g @google/clasp
 clasp login
 ```
 
-4. Create your clasp config from the template: Max/Linux
+4. Create your clasp config from the template:
+
+Mac/Linux
 
 ```bash
 cp .clasp.json.txt .clasp.json
@@ -200,4 +202,4 @@ This project is licensed under the <FILL IN> License - see the [LICENSE](LICENSE
 
 ---
 
-_CMPE 195A/B - Senior Design Project | San Jose State University | Spring 2026_
+_CMPE 195A/B - Senior Design Project | San Jose State University | Fall 2026_
