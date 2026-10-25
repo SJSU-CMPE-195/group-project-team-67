@@ -98,6 +98,7 @@ clasp push
 ## Running the Prototype
 
 Demo Sheet: https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/edit?usp=sharing
+
 Demo Form: https://forms.gle/BSXZEJVfRYdtAs1t9
 
 1. Submit sample responses through the Google Form. The sheet also needs a Courses sheet.
