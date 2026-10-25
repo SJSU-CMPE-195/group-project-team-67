@@ -9,18 +9,19 @@ hardware_required: false
 setup:
   - "npm ci"
 build:
-  - 'node -e "const fs=require(''fs''),vm=require(''vm'');fs.readdirSync(''schedulr_apps_script'').filter(f=>f.endsWith(''.gs'')).forEach(f=>new vm.Script(fs.readFileSync(''schedulr_apps_script/''+f,''utf8''),{filename:f}));console.log(''syntax ok'')"'
-test:
-  - 'node -e "const fs=require(''fs''),vm=require(''vm'');fs.readdirSync(''schedulr_apps_script'').filter(f=>f.endsWith(''.gs'')).forEach(f=>new vm.Script(fs.readFileSync(''schedulr_apps_script/''+f,''utf8''),{filename:f}));console.log(''syntax ok'')"'
-run:
+  - "https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/copy?gid=1262351019#gid=1262351019"
+  - https://docs.google.com/forms/d/1c1-GnMwr-utMf0g2aXyGNXCMN-2I2RFzwJoN2Vh1Mh8/copy
   - "Apps Script runs inside Google Sheets. Push with clasp (see README Installation), then use the Schedulr menu in the Sheet: Clean preferences, Build faculty sheet, Generate schedule."
+
+test:
+  - "npm test"
 
 mock_mode:
   available: false
   commands: []
 
 demo:
-  video: "PASTE_VIDEO_LINK"
+  video: "https://drive.google.com/file/d/1uY2hpvLbm7qXBEp0BpeCVKY3JAoeizrZ/view?usp=sharing"
   screenshots:
     ["docs/screenshots/schedule.png", "docs/screenshots/changelog.png"]
 

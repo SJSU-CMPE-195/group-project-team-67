@@ -46,7 +46,7 @@ All logic lives in Google Apps Script bound to one Google Sheet. Change tracking
 - clasp CLI
 - Git
 
-## Installation
+## Installation (Project_Source)
 
 1. Clone the repository:
 
@@ -96,6 +96,18 @@ Copy-Item .clasp.json.txt .clasp.json
 ```bash
 clasp push
 ```
+## Installation (Local)
+1. Make a copy of the sheets and form
+https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/copy?gid=1262351019#gid=1262351019
+https://docs.google.com/forms/d/1c1-GnMwr-utMf0g2aXyGNXCMN-2I2RFzwJoN2Vh1Mh8/copy
+
+2. Get permission by going to setting in apps script and turning on Google App Script API
+https://script.google.com/home/usersettings
+
+3. Link the form to the sheet and publish the sheet.
+
+4. Back on the google sheet, delete the Form Responses 1 and change the newest Form Responses to Form Responses 1 
+i.e - Form Responses 5 -> Form Responses 1 (this will be fixed)
 
 ## Running the Prototype
 
@@ -127,21 +139,34 @@ Demo Form: https://forms.gle/BSXZEJVfRYdtAs1t9
 5. The Courses menu contains: Update Courses, Comparing Room Size (Current Page), Create blank schedule, Pull Semester Schedule, and Fill in Responses.
 
 ## Testing
+Google auth only allows for syntax changing so run npm test in project terminal to test
 
+```bash
+npm test
+```
 Automated tests are not currently included. To test manually:
 
 1. Submit sample responses through the Google Form.
-2. Run Clean preferences.
-3. Run Build faculty sheet.
-4. Run Generate schedule.
-5. Confirm that ScheduleOutput contains assigned professors and time slots.
-6. Confirm no professor is assigned to two sections in the same term and time slot.
-7. Edit a schedule cell and confirm the change appears in Change_Log.
-8. Test Undo Changes and Accept All Changes.
+2. On the Google form click the three dots (top right corner next to profile icon)
+3. Then click on Apps Script.
+4. Click on adding_test_data and change.
+```bash
+const N = 2; 
+```
+to however many test response wanted. Warning the bigger the number the longer it takes
+5. if changed save the Appscript.
+6. click on randomEmail and change it to submitTestResponses then run.
+7. Back on the sheets Run Clean preferences.
+8. Run Build faculty sheet.
+9. Run Generate schedule.
+10. Confirm that ScheduleOutput contains assigned professors and time slots.
+11. Confirm no professor is assigned to two sections in the same term and time slot.
+12. Edit a schedule cell and confirm the change appears in Change_Log.
+13. Test Undo Changes and Accept All Changes.
 
 ## Demo
 
-Demo Video: https://drive.google.com/file/d/1uY2hpvLbm7qXBEp0BpeCVKY3JAoeizrZ/view?usp=sharing
+Demo Video: <https://drive.google.com/file/d/1uY2hpvLbm7qXBEp0BpeCVKY3JAoeizrZ/view?usp=sharing>
 
 ### Schedule Output
 
