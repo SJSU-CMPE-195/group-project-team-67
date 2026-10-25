@@ -1,19 +1,62 @@
-// Change this value when you want to use a different pulled semester sheet.
-const BLANK_SCHEDULE_SOURCE_SHEET = "Pulled_Fall_2026_CMPE";
 
 /**
- * Creates a blank schedule from the hard-coded pulled semester sheet.
- * No HTML popup or sheet selector is used.
+ * Opens a selector for Pulled_ semester sheets and creates a blank schedule
+ * from the selected sheet without overwriting an existing schedule.
  */
 function create_blank_schedule() {
-  return cbCreateBlankSchedule(BLANK_SCHEDULE_SOURCE_SHEET);
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const pulledSheets = ss
+    .getSheets()
+    .map((sheet) => sheet.getName())
+    .filter((name) => name.indexOf("Pull_") === 0)
+    .sort();
+
+  if (!pulledSheets.length) {
+    SpreadsheetApp.getUi().alert(
+      "No Pull_ semester sheets were found. Run pull_semester first.",
+    );
+    return;
+  }
+
+  const options = pulledSheets
+    .map((name) => "<option value='" + cbEscapeHtml_(name) + "'>" +
+      cbEscapeHtml_(name) + "</option>")
+    .join("");
+
+  const html = HtmlService.createHtmlOutput(
+    "<html><head><base target='_top'><style>" +
+      "body{font-family:Arial,sans-serif;padding:16px;color:#202124}" +
+      "label{display:block;font-weight:bold;margin-bottom:6px}" +
+      "select{width:100%;padding:8px;font-size:13px}" +
+      "button{margin-top:18px;padding:8px 18px;background:#1a73e8;color:white;border:0;border-radius:4px;cursor:pointer}" +
+      "#status{margin-top:12px;color:#5f6368;font-size:12px}" +
+      "</style></head><body>" +
+      "<h2>Create Blank Schedule</h2>" +
+      "<label for='source'>Pull semester schedule</label>" +
+      "<select id='source'>" + options + "</select>" +
+      "<button id='createButton' onclick='createSchedule()'>Create New Schedule</button>" +
+      "<div id='status'></div>" +
+      "<script>" +
+      "function createSchedule(){" +
+      "var button=document.getElementById('createButton');button.disabled=true;" +
+      "document.getElementById('status').textContent='Creating schedule...';" +
+      "google.script.run.withSuccessHandler(function(result){" +
+      "document.getElementById('status').textContent=result.message;button.disabled=false;" +
+      "}).withFailureHandler(function(error){" +
+      "document.getElementById('status').textContent=error.message||error;button.disabled=false;" +
+      "}).cbCreateBlankSchedule(document.getElementById('source').value);" +
+      "}" +
+      "</script></body></html>",
+  ).setWidth(420).setHeight(300);
+
+  SpreadsheetApp.getUi().showModalDialog(html, "Create Blank Schedule");
 }
 
 function cbCreateBlankSchedule(sourceSheetName) {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
   const source = ss.getSheetByName(sourceSheetName);
-  if (!source || source.getName().indexOf("Pulled_") !== 0) {
-    throw new Error("The selected Pulled_ sheet no longer exists.");
+  if (!source || source.getName().indexOf("Pull_") !== 0) {
+    throw new Error("The selected Pull_ sheet no longer exists.");
   }
 
   const roomsSheet = ss.getSheetByName("Rooms");
