@@ -20,14 +20,14 @@ Departments plan CMPE and SE course offerings in manual spreadsheets, which make
 
 ## Prototype Scope
 
-# Works end to end now
+***Works end to end now***
 
 - Pipeline: Google Form → Clean preferences → Build faculty sheet → Generate schedule → ScheduleOutput sheet
 - Greedy assignment of professors to course sections and time slots, constrained by instructor availability, maximum teaching load, and time conflicts (a professor cannot hold two sections in the same term and slot)
 - Change tracking on schedule sheets
 - Course data tools (Courses menu): pull SJSU semester sections, update the schedule sheet from the SJSU Fall 2026 schedule, create a blank schedule from a pulled semester, fill a schedule from form responses, and compare room sizes against a Rooms sheet
 
-# Incomplete / left for the Expo
+***Incomplete / left for the Expo***
 
 - Scheduling is greedy, with no optimization beyond that
 - Room planning is not integrated into schedule generation
