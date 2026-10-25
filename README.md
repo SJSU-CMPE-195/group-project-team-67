@@ -9,7 +9,6 @@
 | Nick    | [@nick-mama](https://github.com/nick-mama)             | nickjason.mamaoag@sjsu.edu |
 | Vance   | [@vancednguyen](https://github.com/vancednguyen)       | vance.nguyen@sjsu.edu      |
 | Yashas  | [@YashSat21](https://github.com/YashSat21)             | yashas.satheesh@sjsu.edu   |
-| Michael | [@michaelnathykim](https://github.com/michaelnathykim) | michael.n.kim@sjsu.edu     |
 
 **Advisor:** Professor Rojas
 
