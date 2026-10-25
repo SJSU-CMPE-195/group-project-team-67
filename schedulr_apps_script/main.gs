@@ -21,6 +21,7 @@ function onOpen() {
     .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
     .addItem("Create blank schedule", "create_blank_schedule")
     .addItem("Pull Semester Schedule", "pull_semester")
+    .addItem("Fill in Responses", "fill_in_responses")
     .addToUi();
   try {
     seedSnapshots();
