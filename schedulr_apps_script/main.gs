@@ -17,11 +17,11 @@ function onOpen() {
     .addToUi();
   SpreadsheetApp.getUi()
     .createMenu("Courses")
-    .addItem("Update Courses", "update_courses")
-    .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
     .addItem("Create blank schedule", "create_blank_schedule")
     .addItem("Pull Semester Schedule", "pull_semester")
     .addItem("Fill in Responses", "fill_in_responses")
+    .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
+    //.addItem("Update Courses", "update_courses")
     .addToUi();
   try {
     seedSnapshots();
@@ -30,10 +30,100 @@ function onOpen() {
   }
 }
 
+/**
+ * Finds the form response tab by its headers instead of assuming a specific
+ * tab name such as "Form Responses 1".
+ */
+function getFormResponsesSheet_(ss) {
+  const candidates = ss.getSheets().filter((sheet) => {
+    const values = sheet.getDataRange().getValues();
+    if (!values.length) return false;
+    const headers = values[0].map(normalizeRawFormHeader_);
+    const hasEmail = findRawFormHeader_(headers, ["email", "email_address"]) !== -1;
+    const hasCourseChoice = headers.some(
+      (header) =>
+        header.indexOf("choice_course") !== -1 ||
+        header.indexOf("course_preference") !== -1,
+    );
+    return hasEmail && hasCourseChoice;
+  });
+
+  if (!candidates.length) {
+    throw new Error(
+      "No form response sheet was found. The sheet must contain Email and course-choice columns.",
+    );
+  }
+
+  const namedCandidate = candidates.find((sheet) =>
+    /^form responses?(?: \d+)?$/i.test(sheet.getName().trim()),
+  );
+  return namedCandidate || candidates[0];
+}
+
+function getRawFormColumns_(sheet) {
+  const values = sheet.getDataRange().getValues();
+  if (!values.length) throw new Error("The form response sheet is empty.");
+
+  const headers = values[0].map(normalizeRawFormHeader_);
+  const preferences = [
+    findRawFormHeader_(headers, ["first_choice_course", "course_preference_1", "course_1"]),
+    findRawFormHeader_(headers, ["second_choice_course", "course_preference_2", "course_2"]),
+    findRawFormHeader_(headers, ["third_choice_course", "course_preference_3", "course_3"]),
+  ];
+
+  const columns = {
+    email: findRawFormHeader_(headers, ["email", "email_address", "e_mail"]),
+    preferences: preferences,
+    availability: findRawFormHeader_(headers, [
+      "availability",
+      "available_slots",
+      "available_times",
+    ]),
+    unavailableSlots: findRawFormHeader_(headers, [
+      "time_slots_you_cannot_teach",
+      "slots_you_cannot_teach",
+      "unavailable_slots",
+      "blocked_slots",
+    ]),
+    maxCourses: findRawFormHeader_(headers, [
+      "maximum_courses_willing_to_teach",
+      "max_courses",
+      "maximum_courses",
+      "courses_willing_to_teach",
+      "max_load",
+    ]),
+  };
+
+  if (columns.email === -1) {
+    throw new Error("The form response sheet is missing an Email column.");
+  }
+  if (columns.preferences.every((index) => index === -1)) {
+    throw new Error("The form response sheet is missing course-choice columns.");
+  }
+  return columns;
+}
+
+function normalizeRawFormHeader_(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/&/g, "and")
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function findRawFormHeader_(headers, aliases) {
+  for (let i = 0; i < aliases.length; i++) {
+    const alias = normalizeRawFormHeader_(aliases[i]);
+    const exactIndex = headers.indexOf(alias);
+    if (exactIndex !== -1) return exactIndex;
+  }
+  return -1;
+}
+
 function cleanPreferences() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = ss.getSheetByName("Form Responses 1");
-  if (!rawSheet) throw new Error("Missing sheet: Form Responses 1");
+  const rawSheet = getFormResponsesSheet_(ss);
+  const columns = getRawFormColumns_(rawSheet);
 
   const cleanSheet = getOrCreateSheet_(ss, "Cleaned_Preferences");
   const data = rawSheet.getDataRange().getValues();
@@ -55,17 +145,27 @@ function cleanPreferences() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const email = String(row[0] || "")
+    const email = String(row[columns.email] || "")
       .trim()
       .toLowerCase();
     if (!email) continue; // no email, no way to track this professor
 
-    const pref1 = normalizeCourseCode_(row[1]);
-    const pref2 = normalizeCourseCode_(row[2]);
-    const pref3 = normalizeCourseCode_(row[3]);
+    const pref1 = normalizeCourseCode_(
+      columns.preferences[0] === -1 ? "" : row[columns.preferences[0]],
+    );
+    const pref2 = normalizeCourseCode_(
+      columns.preferences[1] === -1 ? "" : row[columns.preferences[1]],
+    );
+    const pref3 = normalizeCourseCode_(
+      columns.preferences[2] === -1 ? "" : row[columns.preferences[2]],
+    );
 
-    const availabilityList = splitMultiSelect_(row[4]).map(normalizeTimeSlot_);
-    const maxCourses = Number(row[6] || 0);
+    const availabilityList = splitMultiSelect_(
+      columns.availability === -1 ? "" : row[columns.availability],
+    ).map(normalizeTimeSlot_);
+    const maxCourses = Number(
+      columns.maxCourses === -1 ? 0 : row[columns.maxCourses] || 0,
+    );
 
     // Use the first available slot as "preferredTime" for scoring.
     const preferredTime = availabilityList.length ? availabilityList[0] : "";
@@ -83,7 +183,8 @@ function cleanPreferences() {
 
 function buildFacultySheet() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = mustGetSheet_(ss, "Form Responses 1");
+  const rawSheet = getFormResponsesSheet_(ss);
+  const columns = getRawFormColumns_(rawSheet);
   const facultySheet = getOrCreateSheet_(ss, "Faculty");
   const data = rawSheet.getDataRange().getValues();
 
@@ -100,11 +201,15 @@ function buildFacultySheet() {
   for (let i = 1; i < data.length; i++) {
     const row = data[i];
 
-    const email = String(row[0] || "")
+    const email = String(row[columns.email] || "")
       .trim()
       .toLowerCase();
-    const unavailableSlots = splitMultiSelect_(row[5]).map(normalizeTimeSlot_);
-    const maxLoad = Number(row[6] || 0);
+    const unavailableSlots = splitMultiSelect_(
+      columns.unavailableSlots === -1 ? "" : row[columns.unavailableSlots],
+    ).map(normalizeTimeSlot_);
+    const maxLoad = Number(
+      columns.maxCourses === -1 ? 0 : row[columns.maxCourses] || 0,
+    );
 
     if (!email || seen[email]) continue; // no email, no way to track this professor
     seen[email] = true;
@@ -119,7 +224,7 @@ function generateSchedule() {
   const ss = SpreadsheetApp.getActiveSpreadsheet();
 
   const coursesSheet = mustGetSheet_(ss, "Courses");
-  const rawSheet = mustGetSheet_(ss, "Form Responses 1");
+  const rawSheet = getFormResponsesSheet_(ss);
   const prefSheet =
     ss.getSheetByName("Cleaned_Preferences") ||
     ss.getSheetByName("Preferences");
