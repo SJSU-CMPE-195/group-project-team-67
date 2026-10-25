@@ -141,7 +141,7 @@ Automated tests are not currently included. To test manually:
 
 ## Demo
 
-Demo Video: <PASTE VIDEO LINK>
+Demo Video: <[PASTE VIDEO LINK](https://drive.google.com/file/d/1uY2hpvLbm7qXBEp0BpeCVKY3JAoeizrZ/view?usp=sharing)>
 
 ### Schedule Output
 
