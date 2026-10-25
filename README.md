@@ -2,14 +2,13 @@
 
 > A constraint-based faculty scheduling tool that automatically assigns professors to courses and generates time slots based on preferences, availability, and eligibility.
 
-## Group 7
+## Team
 
-| Name    | GitHub                                                 | Email                      |
-| ------- | ------------------------------------------------------ | -------------------------- |
-| Nick    | [@nick-mama](https://github.com/nick-mama)             | nickjason.mamaoag@sjsu.edu |
-| Vance   | [@vancednguyen](https://github.com/vancednguyen)       | vance.nguyen@sjsu.edu      |
-| Yashas  | [@YashSat21](https://github.com/YashSat21)             | yashas.satheesh@sjsu.edu   |
-| Michael | [@michaelnathykim](https://github.com/michaelnathykim) | michael.n.kim@sjsu.edu     |
+| Name   | GitHub                                           | Email                      |
+| ------ | ------------------------------------------------ | -------------------------- |
+| Nick   | [@nick-mama](https://github.com/nick-mama)       | nickjason.mamaoag@sjsu.edu |
+| Vance  | [@vancednguyen](https://github.com/vancednguyen) | vance.nguyen@sjsu.edu      |
+| Yashas | [@YashSat21](https://github.com/YashSat21)       | yashas.satheesh@sjsu.edu   |
 
 **Advisor:** Professor Rojas
 
@@ -17,117 +16,71 @@
 
 ## Project Description
 
-Schedulr is a faculty course planning system that automates the process of assigning professors to courses and generating valid schedules. It uses instructor preferences, availability, prior teaching history, and institutional constraints to produce a feasible schedule.
+Departments plan CMPE and SE course offerings in manual spreadsheets, which makes it hard to balance faculty preferences, availability, and workload without creating conflicts. Schedulr runs inside Google Sheets: professors submit preferences through a Google Form, Apps Script scripts clean the responses, assign professors to course sections and time slots, and record every edit to the schedule so reviewers can see, undo, or accept changes.
 
-## Problem Statement
+## Prototype Scope
 
-Departments currently rely on manual spreadsheets to plan CMPE and SE course offerings, making demand forecasting and multi-term coordination inefficient and error-prone. It’s difficult to balance prerequisites, outside course schedules, faculty preferences, and workload constraints without creating conflicts or mismatched capacity.
+# Works end to end now
 
-## Proof of Concept Scope
+- Pipeline: Google Form → Clean preferences → Build faculty sheet → Generate schedule → ScheduleOutput sheet
+- Greedy assignment of professors to course sections and time slots, constrained by instructor availability, maximum teaching load, and time conflicts (a professor cannot hold two sections in the same term and slot)
+- Change tracking on schedule sheets
+- Course data tools (Courses menu): pull SJSU semester sections, update the schedule sheet from the SJSU Fall 2026 schedule, create a blank schedule from a pulled semester, fill a schedule from form responses, and compare room sizes against a Rooms sheet
 
-This PoC demonstrates:
+# Incomplete / left for the Expo
 
-- End-to-end scheduling pipeline:
-  - Google Form → Data cleaning → Faculty & eligibility generation → Schedule output
-- Automatic assignment of:
-  - Professors to courses
-  - Time slots to course sections
-- Constraint handling:
-  - Instructor availability
-  - Maximum teaching load
-  - Course eligibility
-  - Time conflicts
+- Scheduling is greedy, with no optimization beyond that
+- Room planning is not integrated into schedule generation
+- No automated test suite yet
 
-**Not included yet:**
+## System Architecture
 
-- UI/dashboard
-- Optimization beyond greedy assignment
-- Room assignment
+![System Architecture](docs/screenshots/sysarch.png)
 
-## Live PoC
-
-Google Sheet (Scheduler): https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/edit?usp=sharing
-
-Google Form (Input): https://forms.gle/BSXZEJVfRYdtAs1t9
-
-Use the form to submit sample responses, then run the scheduler from the Sheet menu (see **Running the PoC** section).
+All logic lives in Google Apps Script bound to one Google Sheet. Change tracking uses onEdit plus hidden _snap_<SheetName> mirror sheets to recover old values on bulk edits. Code is synced to Apps Script with clasp.
 
 ## Prerequisites
 
-### Apps Script/clasp
-
-- Google account
-- Google Sheets
-- Node.js (for clasp)
+- Google account with access to the Schedulr Google Sheet and Form
+- Node.js 20 or newer (the deploy workflow uses Node 20) and npm
 - clasp CLI
-
-Install clasp:
-
-```bash
-npm install -g @google/clasp
-clasp login
-```
-
-### Python Scraper
-
-- Python 3.8+
-- pip
-
-Install dependencies:
-
-```bash
-cd sjsu_data_scraper
-pip install requests beautifulsoup4 pandas lxml
-```
+- Git
 
 ## Installation
+
+1. Clone the repository:
 
 ```bash
 git clone https://github.com/SJSU-CMPE-195/group-project-team-67.git
 cd group-project-team-67
 ```
 
-To pull the latest Apps Script code:
+2. Install dependencies:
 
 ```bash
-cd schedulr_apps_script
-clasp pull
+npm ci
 ```
 
-## Apps Script Setup
+3. Install clasp and log in:
 
-This project uses `clasp` to sync local code with Google Apps Script.
+```bash
+npm install -g @google/clasp
+clasp login
+```
 
-You must create a `.clasp.json` file in the **root directory** of the project.
-
-### Quick Setup:
-
-1. Run:
-
-**Mac/Linux:**
+4. Create your clasp config from the template: Max/Linux
 
 ```bash
 cp .clasp.json.txt .clasp.json
 ```
 
-**Windows (PowerShell):**
+Windows (PowerShell)
 
 ```powershell
 Copy-Item .clasp.json.txt .clasp.json
 ```
 
-2. Open the new `.clasp.json` file
-
-3. Replace the placeholder with the Apps Script ID
-
-To get the script ID:
-
-- Open the Google Sheet
-- Go to **Extensions -> Apps Script**
-- Click **Project Settings**
-- Copy the **Script ID**
-
-Example `.clasp.json` file:
+5. Open .clasp.json and replace the placeholder with your Apps Script Script ID (in the Sheet: Extensions → Apps Script → Project Settings → Script ID):
 
 ```json
 {
@@ -136,91 +89,107 @@ Example `.clasp.json` file:
 }
 ```
 
-## Running the PoC
-
-1. Open the connected Google Sheet
-2. Submit sample responses through the Google Form
-3. In the Sheet menu, click **Schedulr** and run the steps in order:
-
-| Step | Menu Item                 | Description                                                           |
-| ---- | ------------------------- | --------------------------------------------------------------------- |
-| 1    | Import scraper CSV        | Load course data from the SJSU scraper CSV via Drive ID               |
-| 2    | Clean preferences         | Parse and normalize raw Form responses                                |
-| 3    | Build faculty sheet       | Extract faculty availability and load limits                          |
-| 4    | Build eligibility sheet   | Map which faculty are eligible for which courses                      |
-| 5    | Generate schedule         | Run the constraint-based scheduling algorithm                         |
-| 6    | Generate conflict summary | Summarize unresolved conflicts by type                                |
-| 7    | Validate schedule         | Check the output for double-bookings, overloads, and missing sections |
-
-4. View outputs in the following sheets:
-
-| Sheet            | Contents                                              |
-| ---------------- | ----------------------------------------------------- |
-| ScheduleOutput   | Assigned professors, courses, and time slots          |
-| Conflicts        | Courses that could not be assigned and the reasons    |
-| Conflict_Summary | Conflict counts grouped by type, color-coded          |
-| Validation_Log   | Per-row validation results (eligibility, load, slots) |
-
-## Running the Scraper
-
-The scraper pulls current CMPE/SE course data from the SJSU catalog and class schedule.
+6. Push the code to Apps Script:
 
 ```bash
-cd sjsu_data_scraper
-python sjsu_class_scraper.py
+clasp push
 ```
 
-Output: `sjsu_major_courses_spring_2026.csv`
+## Running the Prototype
 
-Upload the file to Google Drive, then use **Import scraper CSV** in the Schedulr menu and paste the Drive file ID when prompted.
+Demo Sheet: https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/edit?usp=sharing
+Demo Form: https://forms.gle/BSXZEJVfRYdtAs1t9
+
+1. Submit sample responses through the Google Form. The sheet also needs a Courses sheet.
+2. In the Sheet, open the Schedulr menu and run in order:
+
+   | Step | Menu item           | What it does                                 |
+   | ---- | ------------------- | -------------------------------------------- |
+   | 1    | Clean preferences   | Parses and normalizes raw form responses     |
+   | 2    | Build faculty sheet | Extracts faculty availability and max load   |
+   | 3    | Generate schedule   | Assigns professors to courses and time slots |
+
+3. Read the result in the ScheduleOutput sheet.
+4. Edit any schedule cell, then use the change-tracking items in the Schedulr menu:
+
+| Menu item           | What it does                                           |
+| ------------------- | ------------------------------------------------------ |
+| View Change Log     | Opens Change_Log, grouped by day, newest first         |
+| View Changed Rows   | Shows the full row for every row with a tracked change |
+| Jump to Next Change | Moves to the next highlighted cell                     |
+| Undo Changes        | Steps a changed cell back one edit at a time           |
+| Accept All Changes  | Clears highlights and notes, keeps current values      |
+| Clear Change Log    | Wipes Change_Log rows (manual only)                    |
+
+5. The Courses menu contains: Update Courses, Comparing Room Size (Current Page), Create blank schedule, Pull Semester Schedule, and Fill in Responses.
+
+## Testing
+
+Automated tests are not currently included. To test manually:
+
+1. Submit sample responses through the Google Form.
+2. Run Clean preferences.
+3. Run Build faculty sheet.
+4. Run Generate schedule.
+5. Confirm that ScheduleOutput contains assigned professors and time slots.
+6. Confirm no professor is assigned to two sections in the same term and time slot.
+7. Edit a schedule cell and confirm the change appears in Change_Log.
+8. Test Undo Changes and Accept All Changes.
 
 ## Demo
+
+Demo Video: <PASTE VIDEO LINK>
 
 ### Schedule Output
 
 ![Schedule Output](docs/screenshots/schedule.png)
 
-Shows assigned professors and generated time slots based on preferences and constraints.
+Assigned professors and time slots generated from preferences and constraints.
 
-### Conflicts
+### Change Log
 
-![Conflicts](docs/screenshots/conflicts.png)
+![Change Log](docs/screenshots/changelog.png)
 
-Shows courses that could not be assigned due to constraints such as time conflicts, limited availability, or maximum load limits. Candidate faculty are listed to show why no valid assignment could be made within the current constraints.
+Keeps track of changes made in different sheets.
 
-## Tech Stack
+## Technical Stack
 
-| Category  | Technology             |
-| --------- | ---------------------- |
-| Backend   | Google Apps Script     |
-| Data      | Google Sheets          |
-| Input     | Google Forms           |
-| Scripting | JavaScript             |
-| Scraping  | Python (BeautifulSoup) |
-| Tools     | Git, clasp             |
+| Category  | Technology         |
+| --------- | ------------------ |
+| Backend   | Google Apps Script |
+| Data      | Google Sheets      |
+| Input     | Google Forms       |
+| Scripting | JavaScript         |
+| Tools     | Git, clasp         |
 
-## What's Next (195B)
+## What's Next
 
-- Build web-based schedule visualization (React or Next.js)
-- Add JSON export from Apps Script to feed the frontend
-- Improve scheduling algorithm (constraint optimization)
-- Add UI dashboard
-- Integrate real historical course data
-- Add room assignment
-- Improve preference weighting system
+Before the Project Expo on December 11:
+
+- Integrate room data into the broader schedule
+- Add automated tests and run them in CI
+- Write a user guide for staff who will use the Sheet
+- Improve the assignment algorithm beyond greedy
+- Confirm with the advisor how the department schedules today and adjust the model
 
 ## Project Structure
 
 ```
 .
-├── schedulr_apps_script/ # Apps Script scheduler (main.gs + appsscript.json)
-├── sjsu_data_scraper/ # Python scraper + output CSV
-├── docs/
-│   └── screenshots/        # Demo screenshots
-├── src/                    # Frontend (195B — in development)
+├── schedulr_apps_script/   # Apps Script source
+│   ├── main.gs             # Menu, cleaning, faculty, scheduling, change log
+│   ├── snapshotDiff.gs     # Bulk-edit tracking via hidden snapshot sheets
+│   ├── courses.gs          # Update schedule from SJSU site
+│   ├── pull_semester.gs    # Pull SJSU semester sections
+│   ├── blank_schedule.gs   # Create blank schedule from a pulled semester
+│   ├── fill_in.gs          # Fill schedule from form responses
+│   ├── compare_rooms.gs    # Compare section sizes with room capacities
+│   └── appsscript.json     # Manifest
+├── docs/screenshots/       # Demo screenshots
+├── Visualization/          # Design visuals
+├── .github/workflows/      # CI and deploy workflows
 ├── tests/                  # Tests (in development)
 ├── .clasp.json.txt         # Clasp config template (copy to .clasp.json)
-├── .gitignore
 └── README.md
 ```
 
