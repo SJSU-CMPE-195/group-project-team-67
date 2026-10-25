@@ -1,0 +1,27 @@
+project_name: "Schedulr"
+project_type: "web"
+
+impl_claim: "Professor preferences submitted through a Google Form are cleaned and turned into a schedule that assigns each professor only to sections within their availability and max course load, with no overlapping time slots, and every manual edit to the schedule is recorded in a Change_Log with undo and accept."
+
+languages: ["javascript"]
+hardware_required: false
+
+setup:
+  - "npm ci"
+build:
+  - 'node -e "const fs=require(''fs''),vm=require(''vm'');fs.readdirSync(''schedulr_apps_script'').filter(f=>f.endsWith(''.gs'')).forEach(f=>new vm.Script(fs.readFileSync(''schedulr_apps_script/''+f,''utf8''),{filename:f}));console.log(''syntax ok'')"'
+test:
+  - 'node -e "const fs=require(''fs''),vm=require(''vm'');fs.readdirSync(''schedulr_apps_script'').filter(f=>f.endsWith(''.gs'')).forEach(f=>new vm.Script(fs.readFileSync(''schedulr_apps_script/''+f,''utf8''),{filename:f}));console.log(''syntax ok'')"'
+run:
+  - "Apps Script runs inside Google Sheets. Push with clasp (see README Installation), then use the Schedulr menu in the Sheet: Clean preferences, Build faculty sheet, Generate schedule."
+
+mock_mode:
+  available: false
+  commands: []
+
+demo:
+  video: "PASTE_VIDEO_LINK"
+  screenshots:
+    ["docs/screenshots/schedule.png", "docs/screenshots/changelog.png"]
+
+notes: "The system runs inside Google Sheets and needs a Google account and clasp login, which an automated grader will not have, so there is no mock mode yet. The test step is a syntax check of all Apps Script files; automated unit tests are in progress and verification is currently manual (see README Testing). Deployment to Apps Script is by clasp (deploy.yml) and needs repository secrets CLASPRC_JSON and CLASP_JSON, which are not committed."
