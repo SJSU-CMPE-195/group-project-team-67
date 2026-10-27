@@ -37,16 +37,6 @@
 | 3/24/2026 | 20 min      | Remote             | Everyone      | Designate tasks + update Nick                                                      | Individual tasks                                                        |
 | 4/9/2026  | 30 min      | Remote             | Everyone      | Everyone described their tasks for Schedulr Project                                | Individual tasks, Discussion on Clasp/Scripts                           |
 |           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
-|           |             | In-person / Remote |               |                                                                                    |                                                                         |
 
 ---
 
@@ -360,6 +350,31 @@
 
 - [ ] [Pull the CMPE courses on different browsers (incognito)] - [Everyone] - [Next advisor meeting]
 - [ ] [Organize the sheet into a cleaner state] - [Everyone] - [Next advisor meeting]
+- [ ] [Tutorial/Guide on how to operate sheets] - [Everyone] - [Next advisor meeting]
+
+---
+
+### [10/20/26] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+
+**Discussion:**
+
+- Make pull filter a fill-in
+- Senority should be 1 to (# of employees); seperate into groups for senority and assign there
+- Send to advisor once full sheets have been updated
+- Transfer from README to sheets (make a button to show instructions)
+- Work on [AG] Report 4: Revised Implementation Plan
+
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Fill-in for pull filter] - [Everyone] - [Next advisor meeting]
+- [ ] [Seniority Design] - [Everyone] - [Next advisor meeting]
+- [ ] [README instructions to sheets] - [Everyone] - [Next advisor meeting]
 - [ ] [Tutorial/Guide on how to operate sheets] - [Everyone] - [Next advisor meeting]
 
 ---
