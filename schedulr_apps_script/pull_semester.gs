@@ -15,7 +15,7 @@ function pull_semester() {
     "<html><head><base target='_top'><style>" +
       "body{font-family:Arial,sans-serif;padding:16px;color:#202124}" +
       "label{display:block;font-weight:bold;margin-top:12px;margin-bottom:4px}" +
-      "select{width:100%;padding:7px;font-size:13px}" +
+      "select,input{box-sizing:border-box;width:100%;padding:7px;font-size:13px}" +
       "button{margin-top:18px;padding:8px 18px;background:#1a73e8;color:white;border:0;border-radius:4px;cursor:pointer}" +
       "button:disabled{background:#9aa0a6;cursor:default}" +
       "#status{margin-top:12px;color:#5f6368;font-size:12px}" +
@@ -34,7 +34,10 @@ function pull_semester() {
       "<label>Year</label><select id='year' onchange='loadGroups()'>" +
       yearOptions + "</select>" +
       "<label>Course group</label>" +
-      "<select id='group' disabled><option>Loading course groups...</option></select>" +
+      "<input id='group' list='groupOptions' autocomplete='off' " +
+      "placeholder='Type or choose a course group' disabled " +
+      "oninput='updatePullButton()'>" +
+      "<datalist id='groupOptions'></datalist>" +
       "<button id='pullButton' onclick='pullData()' disabled>Pull</button>" +
       "<div id='status'>Choose a semester and year to load course groups.</div>" +
       "<script>" +
@@ -44,19 +47,23 @@ function pull_semester() {
       "var semester=document.getElementById('semester').value;" +
       "var year=document.getElementById('year').value;" +
       "var group=document.getElementById('group');" +
+      "var options=document.getElementById('groupOptions');" +
       "var button=document.getElementById('pullButton');" +
       "group.disabled=true;button.disabled=true;" +
-      "group.innerHTML='<option>Loading course groups...</option>';" +
+      "group.value='';options.innerHTML='';" +
       "setStatus('Loading course groups from SJSU...');" +
       "google.script.run.withSuccessHandler(function(groups){" +
-      "group.innerHTML='';" +
-      "if(!groups.length){group.innerHTML='<option>No course groups found</option>';" +
+      "options.innerHTML='';" +
+      "if(!groups.length){" +
       "setStatus('No course groups were found for that selection.');return;}" +
       "groups.forEach(function(value){var option=document.createElement('option');" +
-      "option.value=value;option.textContent=value;group.appendChild(option);});" +
-      "group.disabled=false;button.disabled=false;setStatus(groups.length+' course group(s) found.');" +
-      "}).withFailureHandler(function(error){group.innerHTML='<option>Unable to load groups</option>';" +
+      "option.value=value;options.appendChild(option);});" +
+      "group.disabled=false;updatePullButton();setStatus(groups.length+' course group(s) found.');" +
+      "}).withFailureHandler(function(error){group.value='';group.disabled=true;" +
       "setStatus(error.message||error);}).ps_get_course_groups(source,semester,year);}" +
+      "function updatePullButton(){" +
+      "document.getElementById('pullButton').disabled=!document.getElementById('group').value.trim();" +
+      "}" +
       "function pullData(){" +
       "var button=document.getElementById('pullButton');button.disabled=true;" +
       "setStatus('Pulling selected sections...');" +
