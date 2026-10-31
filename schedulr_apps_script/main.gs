@@ -15,17 +15,23 @@ function onOpen() {
     .addToUi();
   SpreadsheetApp.getUi()
     .createMenu("Courses")
-    .addItem("Create blank schedule", "create_blank_schedule")
     .addItem("Pull Semester Schedule", "pull_semester")
+    .addItem("Create blank schedule", "create_blank_schedule")
     .addItem("Fill in Responses", "fill_in_responses")
+    .addSeparator()
     .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
+    .addItem("view welcome popup", ("showWelcomeGuide"))
+    //.addItem("reset welcome", "resetWelcomeGuide")
     //.addItem("Update Courses", "update_courses")
     .addToUi();
+
+  
   try {
     seedSnapshots();
   } catch (err) {
     console.error(err);
   }
+  setupWelcomeTrigger(); 
 }
 
 /**

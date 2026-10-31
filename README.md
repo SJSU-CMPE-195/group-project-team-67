@@ -98,7 +98,7 @@ clasp push
 ```
 ## Installation (Local)
 1. Make a copy of the sheets and form
-https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/copy?gid=1262351019#gid=1262351019
+https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/copy?gid=402727775#gid=402727775  || 
 https://docs.google.com/forms/d/1c1-GnMwr-utMf0g2aXyGNXCMN-2I2RFzwJoN2Vh1Mh8/copy
 
 2. Get permission by going to setting in apps script and turning on Google App Script API
