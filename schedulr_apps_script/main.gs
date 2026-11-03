@@ -999,6 +999,7 @@ function undoAllChanges() {
 
   let undone = 0;
   let skipped = 0;
+  const touchedSheets = {};
 
   ids.forEach((id) => {
     const parts = id.split("!");
@@ -1019,6 +1020,7 @@ function undoAllChanges() {
     } else {
       range.setValue(last.previousValue);
       syncSnapshotRange_(sheet, range);
+      touchedSheets[sheetName] = sheet;
       undone++;
     }
 
@@ -1033,6 +1035,13 @@ function undoAllChanges() {
   });
 
   props.setProperty("pendingChanges", JSON.stringify(map));
+
+  // Script writes don't fire onEdit, so re-rank staff after undoing Seniority.
+  Object.keys(touchedSheets).forEach((name) => {
+    if (isFormResponsesSheet_(touchedSheets[name]))
+      updateRanks(touchedSheets[name]);
+  });
+
   refreshChangedRowsSheet_();
 
   ui.alert(
