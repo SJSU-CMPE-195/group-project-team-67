@@ -113,6 +113,8 @@ i.e - Form Responses 5 -> Form Responses 1 (this will be fixed)
 
 Demo Sheet: https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/edit?usp=sharing
 
+Demo Sheet (Copyable Template): https://docs.google.com/spreadsheets/d/1lojaKJ_upQNaAoNeLLrqR7sFTTfOgHD1zpiIz_9MTRs/template/preview
+
 Demo Form: https://forms.gle/BSXZEJVfRYdtAs1t9
 
 1. Submit sample responses through the Google Form. The sheet also needs a Courses sheet.
