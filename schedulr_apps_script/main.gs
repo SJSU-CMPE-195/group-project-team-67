@@ -1,7 +1,6 @@
 function onOpen() {
   SpreadsheetApp.getUi()
     .createMenu("Schedulr")
-    .addItem("Clean preferences", "cleanPreferences")
     .addItem("Build faculty sheet", "buildFacultySheet")
     .addItem("Generate schedule", "generateSchedule")
     // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
@@ -20,18 +19,17 @@ function onOpen() {
     .addItem("Fill in Responses", "fill_in_responses")
     .addSeparator()
     .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
-    .addItem("view welcome popup", ("showWelcomeGuide"))
+    .addItem("view welcome popup", "showWelcomeGuide")
     //.addItem("reset welcome", "resetWelcomeGuide")
     //.addItem("Update Courses", "update_courses")
     .addToUi();
 
-  
   try {
     seedSnapshots();
   } catch (err) {
     console.error(err);
   }
-  setupWelcomeTrigger(); 
+  setupWelcomeTrigger();
 }
 
 /**
@@ -43,7 +41,8 @@ function getFormResponsesSheet_(ss) {
     const values = sheet.getDataRange().getValues();
     if (!values.length) return false;
     const headers = values[0].map(normalizeRawFormHeader_);
-    const hasEmail = findRawFormHeader_(headers, ["email", "email_address"]) !== -1;
+    const hasEmail =
+      findRawFormHeader_(headers, ["email", "email_address"]) !== -1;
     const hasCourseChoice = headers.some(
       (header) =>
         header.indexOf("choice_course") !== -1 ||
@@ -70,9 +69,21 @@ function getRawFormColumns_(sheet) {
 
   const headers = values[0].map(normalizeRawFormHeader_);
   const preferences = [
-    findRawFormHeader_(headers, ["first_choice_course", "course_preference_1", "course_1"]),
-    findRawFormHeader_(headers, ["second_choice_course", "course_preference_2", "course_2"]),
-    findRawFormHeader_(headers, ["third_choice_course", "course_preference_3", "course_3"]),
+    findRawFormHeader_(headers, [
+      "first_choice_course",
+      "course_preference_1",
+      "course_1",
+    ]),
+    findRawFormHeader_(headers, [
+      "second_choice_course",
+      "course_preference_2",
+      "course_2",
+    ]),
+    findRawFormHeader_(headers, [
+      "third_choice_course",
+      "course_preference_3",
+      "course_3",
+    ]),
   ];
 
   const columns = {
@@ -102,7 +113,9 @@ function getRawFormColumns_(sheet) {
     throw new Error("The form response sheet is missing an Email column.");
   }
   if (columns.preferences.every((index) => index === -1)) {
-    throw new Error("The form response sheet is missing course-choice columns.");
+    throw new Error(
+      "The form response sheet is missing course-choice columns.",
+    );
   }
   return columns;
 }
@@ -122,67 +135,6 @@ function findRawFormHeader_(headers, aliases) {
     if (exactIndex !== -1) return exactIndex;
   }
   return -1;
-}
-
-function cleanPreferences() {
-  const ss = SpreadsheetApp.getActiveSpreadsheet();
-  const rawSheet = getFormResponsesSheet_(ss);
-  const columns = getRawFormColumns_(rawSheet);
-
-  const cleanSheet = getOrCreateSheet_(ss, "Cleaned_Preferences");
-  const data = rawSheet.getDataRange().getValues();
-
-  cleanSheet.clear();
-  cleanSheet.appendRow([
-    "email",
-    "courseCode",
-    "preferenceRank",
-    "preferredTime",
-    "maxCourses",
-  ]);
-
-  if (data.length < 2) {
-    styleOutputSheet_(cleanSheet);
-    return;
-  }
-
-  for (let i = 1; i < data.length; i++) {
-    const row = data[i];
-
-    const email = String(row[columns.email] || "")
-      .trim()
-      .toLowerCase();
-    if (!email) continue; // no email, no way to track this professor
-
-    const pref1 = normalizeCourseCode_(
-      columns.preferences[0] === -1 ? "" : row[columns.preferences[0]],
-    );
-    const pref2 = normalizeCourseCode_(
-      columns.preferences[1] === -1 ? "" : row[columns.preferences[1]],
-    );
-    const pref3 = normalizeCourseCode_(
-      columns.preferences[2] === -1 ? "" : row[columns.preferences[2]],
-    );
-
-    const availabilityList = splitMultiSelect_(
-      columns.availability === -1 ? "" : row[columns.availability],
-    ).map(normalizeTimeSlot_);
-    const maxCourses = Number(
-      columns.maxCourses === -1 ? 0 : row[columns.maxCourses] || 0,
-    );
-
-    // Use the first available slot as "preferredTime" for scoring.
-    const preferredTime = availabilityList.length ? availabilityList[0] : "";
-
-    if (pref1)
-      cleanSheet.appendRow([email, pref1, 1, preferredTime, maxCourses]);
-    if (pref2 && pref2 !== pref1)
-      cleanSheet.appendRow([email, pref2, 2, preferredTime, maxCourses]);
-    if (pref3 && pref3 !== pref1 && pref3 !== pref2)
-      cleanSheet.appendRow([email, pref3, 3, preferredTime, maxCourses]);
-  }
-
-  styleOutputSheet_(cleanSheet);
 }
 
 function buildFacultySheet() {
@@ -229,23 +181,11 @@ function generateSchedule() {
 
   const coursesSheet = mustGetSheet_(ss, "Courses");
   const rawSheet = getFormResponsesSheet_(ss);
-  const prefSheet =
-    ss.getSheetByName("Cleaned_Preferences") ||
-    ss.getSheetByName("Preferences");
-
-  if (!prefSheet) {
-    cleanPreferences();
-  }
-
   // Auto-build missing/empty Faculty sheet
   const facultySheet = ensureFacultySheetReady_(ss, rawSheet);
-  const actualPrefSheet =
-    ss.getSheetByName("Cleaned_Preferences") ||
-    ss.getSheetByName("Preferences");
 
   const courses = getNormalizedCourses_(coursesSheet);
-  const faculty = getNormalizedFaculty_(facultySheet, actualPrefSheet);
-  const preferences = getNormalizedPreferences_(actualPrefSheet, faculty);
+  const faculty = getNormalizedFaculty_(facultySheet);
   const timeSlots = getNormalizedTimeSlots_();
 
   if (!courses.length) throw new Error("Courses sheet has no usable rows.");
@@ -420,18 +360,14 @@ function getNormalizedCourses_(sheet) {
     .filter((r) => r.courseCode && Number(r.sectionsNeeded || 0) > 0);
 }
 
-function getNormalizedFaculty_(sheet, prefSheet) {
+function getNormalizedFaculty_(sheet) {
   const rows = sheetToObjects_(sheet);
-  const maxFromPrefs = buildMaxLoadLookupFromPreferences_(prefSheet);
 
   return rows
     .map((r) => {
       const email = String(pickField_(r, ["email", "Email"]) || "")
         .trim()
         .toLowerCase();
-      const fallbackMax =
-        email && maxFromPrefs[email] ? maxFromPrefs[email] : "";
-
       return {
         facultyId: email,
         email: email,
@@ -445,39 +381,11 @@ function getNormalizedFaculty_(sheet, prefSheet) {
         ).map(normalizeTimeSlot_),
         maxLoad: Number(
           pickField_(r, ["maxLoad", "MaxLoad", "maxCourses", "Max Courses"]) ||
-            fallbackMax ||
             0,
         ),
       };
     })
     .filter((r) => r.facultyId);
-}
-
-function getNormalizedPreferences_(sheet, facultyList) {
-  const rows = sheetToObjects_(sheet);
-
-  return rows
-    .map((r) => {
-      const email = String(pickField_(r, ["email", "Email"]) || "")
-        .trim()
-        .toLowerCase();
-
-      return {
-        facultyId: email,
-        courseCode: normalizeCourseCode_(
-          pickField_(r, ["courseCode", "CourseCode", "course", "Course"]),
-        ),
-        preferenceRank: Number(
-          pickField_(r, ["preferenceRank", "PreferenceRank", "Rank", "rank"]) ||
-            999,
-        ),
-        preferredTime: normalizeTimeSlot_(
-          pickField_(r, ["preferredTime", "Preferred Time"]) || "",
-        ),
-        maxCourses: Number(pickField_(r, ["maxCourses", "Max Courses"]) || 0),
-      };
-    })
-    .filter((r) => r.facultyId && r.courseCode);
 }
 
 function getNormalizedTimeSlots_() {
@@ -670,21 +578,6 @@ function writeSingleColumnBlock_(sheet, startRow, col, rows) {
   if (rows.length) {
     sheet.getRange(startRow, col, rows.length, 1).setValues(rows);
   }
-}
-
-function buildMaxLoadLookupFromPreferences_(prefSheet) {
-  const map = {};
-  if (!prefSheet || prefSheet.getLastRow() < 2) return map;
-
-  const rows = sheetToObjects_(prefSheet);
-  rows.forEach((r) => {
-    const email = String(pickField_(r, ["email", "Email"]) || "")
-      .trim()
-      .toLowerCase();
-    const max = Number(pickField_(r, ["maxCourses", "Max Courses"]) || 0);
-    if (email && max > 0) map[email] = max;
-  });
-  return map;
 }
 
 function pickField_(obj, aliases) {
