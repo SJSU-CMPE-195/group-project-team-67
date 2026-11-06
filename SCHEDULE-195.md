@@ -20,9 +20,9 @@
 | 9/15/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find a way to delete the rows, implement sample schedule and use scenario for testing, try using CI/CD principles                                                  |
 | 9/30/26 | 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Find the way to implement the .pdf room data to the broader schedule                                                                                               |
 | 10/6/26 | 30 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Improve the version control and see what future changes to implement when main excel file is recieved                                                          |
-| 10/13/26| 35 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Get the accurate timings from the assistant and the main excel file with redactions                                                                                                                                                                                                                                                  |
-| 10/20/26| 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Organize the Google Sheet and look into writing a guide for others to reference                                                                                                                                                                                                                                                  |
-|         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
+| 10/13/26| 35 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Get the accurate timings from the assistant and the main excel file with redactions                                                                               |
+| 10/20/26| 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Organize the Google Sheet and look into writing a guide for others to reference                                                                               |
+| 11/03/26| 15 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Change the seniority/rank function, look at the form for preview, and start the writing guide                                                                     |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 
 ---
@@ -376,6 +376,27 @@
 - [ ] [Seniority Design] - [Everyone] - [Next advisor meeting]
 - [ ] [README instructions to sheets] - [Everyone] - [Next advisor meeting]
 - [ ] [Tutorial/Guide on how to operate sheets] - [Everyone] - [Next advisor meeting]
+
+---
+
+### [11/03/26] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+
+**Discussion:**
+- Change the seniority/rank to a manual rank
+- Make the google sheets able to preview
+- Start the implementation of the guide 
+
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Change to manual rank] - [Everyone] - [Next advisor meeting]
+- [ ] [Google sheets preview] - [Everyone] - [Next advisor meeting]
+- [ ] [Start the guide implementation] - [Everyone] - [Next advisor meeting]
 
 ---
 
