@@ -13,22 +13,21 @@ function showWelcomeGuide() {
   const html = HtmlService.createHtmlOutput(`
     <html>
       <body style="font-family:Arial,sans-serif;padding:20px;color:#202124">
-        <h2>Welcome to Schedulr</h2>
+        <h2>How to use</h2>
 
         <p>This spreadsheet helps you pull and organize SJSU course sections. While also keeping a log of all changes</p>
 
          <h3>Getting Started Using the Schedulr Section</h3>
         <ol>
-          <li>Use the <b>Schedulr</b> button to select a clean preferences.</li>
-          <li>This will take all the emails and preferences from Form Response 1 and create a sheet for it</li>
-          <li>Next click on <b>build faculty sheet</b>. This will create a sheet with all the faculty's unwanted times</li>
+          <li>Use the <b>Schedulr</b> button to select a <b>build faculty sheet</b>. This will create a sheet with all the faculty's unwanted times.</li>
           <li>Click <b>Generate Schedule</b> to create a new sheet called ScheduleOutput.</li>
           <li>This will use the Courses sheet and create a schedule based the courses and clean preferences page.</li>
         </ol>
         <h3>Change Log</h3>
         <ol>
           <li>Any manual changes will be recorded and can viewed in change log</li>
-          <li>Accept all changes will get rid of all mark ups</li>
+          <li>Manual change will be marked in red with a log of recent changes</li>
+          <li>Accept all changes will get rid of all mark red ups</li>
         </ol>
 
 
@@ -48,7 +47,7 @@ function showWelcomeGuide() {
         <button onclick="google.script.host.close()">Got it</button>
       </body>
     </html>
-  `).setWidth(450).setHeight(350);
+  `).setWidth(650).setHeight(550);
 
   SpreadsheetApp.getUi().showModalDialog(html, "Welcome to Schedulr");
 }
