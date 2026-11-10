@@ -1,11 +1,12 @@
-const subMenu = SpreadsheetApp.getUi().createMenu('Courses')
-    .addItem("Pull Semester Schedule", "pull_semester")
-    .addItem("Create blank schedule", "create_blank_schedule")
-    .addItem("Fill in Responses", "fill_in_responses")
-    .addSeparator()
-    .addItem("Comparing Room Size (Current Page)", "comparing_room_size")
-    //.addItem("reset welcome", "resetWelcomeGuide")
-    //.addItem("Update Courses", "update_courses")
+const subMenu = SpreadsheetApp.getUi()
+  .createMenu("Courses")
+  .addItem("Pull Semester Schedule", "pull_semester")
+  .addItem("Create blank schedule", "create_blank_schedule")
+  .addItem("Fill in Responses", "fill_in_responses")
+  .addSeparator()
+  .addItem("Comparing Room Size (Current Page)", "comparing_room_size");
+//.addItem("reset welcome", "resetWelcomeGuide")
+//.addItem("Update Courses", "update_courses")
 
 function onOpen() {
   SpreadsheetApp.getUi()
@@ -14,7 +15,7 @@ function onOpen() {
     .addItem("Generate schedule", "generateSchedule")
     .addSubMenu(subMenu)
     .addSeparator()
-    .addItem("Help / How to use", ("showWelcomeGuide"))
+    .addItem("Help / How to use", "showWelcomeGuide")
     // .addItem("Generate course overview", "generateCourseOverview") // dont need for now
     .addSeparator()
     .addItem("View Change Log", "showChangeLog")
@@ -24,7 +25,7 @@ function onOpen() {
     .addItem("Accept All Changes", "acceptAllChanges")
     .addItem("Undo Changes", "undoAllChanges")
     .addToUi();
-    
+
   try {
     seedSnapshots();
   } catch (err) {
@@ -999,7 +1000,6 @@ function undoAllChanges() {
 
   let undone = 0;
   let skipped = 0;
-  const touchedSheets = {};
 
   ids.forEach((id) => {
     const parts = id.split("!");
@@ -1020,7 +1020,6 @@ function undoAllChanges() {
     } else {
       range.setValue(last.previousValue);
       syncSnapshotRange_(sheet, range);
-      touchedSheets[sheetName] = sheet;
       undone++;
     }
 
@@ -1035,12 +1034,6 @@ function undoAllChanges() {
   });
 
   props.setProperty("pendingChanges", JSON.stringify(map));
-
-  // Script writes don't fire onEdit, so re-rank staff after undoing Seniority.
-  Object.keys(touchedSheets).forEach((name) => {
-    if (isFormResponsesSheet_(touchedSheets[name]))
-      updateRanks(touchedSheets[name]);
-  });
 
   refreshChangedRowsSheet_();
 

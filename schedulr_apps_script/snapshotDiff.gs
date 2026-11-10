@@ -7,8 +7,6 @@ function onEdit(e) {
   try {
     if (!e || !e.range) return;
 
-    maybeUpdateRanks_(e);
-
     const sheet = e.range.getSheet();
     const sheetName = sheet.getName();
     if (CHANGE_EXCLUDED_SHEETS.indexOf(sheetName) !== -1) return;

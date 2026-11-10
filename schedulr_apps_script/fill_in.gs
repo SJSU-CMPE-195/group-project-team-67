@@ -181,9 +181,9 @@ function readProfessors_(sh) {
     avail: col(/^availability/),
     cannot: col(/cannot/),
     max: col(/maximum/),
-    sen: col(/^rank$/),
+    rank: col(/^rank$/),
   };
-  const missing = Object.keys(c).filter((k) => k !== "sen" && c[k] < 0);
+  const missing = Object.keys(c).filter((k) => k !== "rank" && c[k] < 0);
   if (missing.length)
     throw new Error(
       "Missing columns in " + sh.getName() + ": " + missing.join(", "),
@@ -193,13 +193,13 @@ function readProfessors_(sh) {
   data.slice(1).forEach((r) => {
     const email = String(r[c.email]).trim();
     if (!email) return;
-    let sen = c.sen >= 0 ? parseInt(r[c.sen], 10) : NaN; // Rank column (1 = highest priority)
-    if (!(sen >= 1)) sen = Infinity; // empty/invalid rank = last
+    let rank = c.rank >= 0 ? parseInt(r[c.rank], 10) : NaN; // Rank column, entered manually by admin (1 = highest priority)
+    if (!(rank >= 1)) rank = Infinity; // empty/invalid rank = last
     const t =
       r[c.ts] instanceof Date ? r[c.ts].getTime() : new Date(r[c.ts]).getTime();
     profs.push({
       email,
-      seniority: sen,
+      rank,
       ts: isNaN(t) ? Infinity : t,
       choices: [r[c.c1], r[c.c2], r[c.c3]].map(courseCode_).filter(Boolean),
       avail: splitSlots_(r[c.avail]),
@@ -210,7 +210,7 @@ function readProfessors_(sh) {
     });
   });
   // rank 1 first, then earliest timestamp
-  profs.sort((a, b) => a.seniority - b.seniority || a.ts - b.ts);
+  profs.sort((a, b) => a.rank - b.rank || a.ts - b.ts);
   return profs;
 }
 
