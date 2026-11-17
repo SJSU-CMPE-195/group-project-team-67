@@ -23,6 +23,7 @@
 | 10/13/26| 35 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Get the accurate timings from the assistant and the main excel file with redactions                                                                               |
 | 10/20/26| 20 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Organize the Google Sheet and look into writing a guide for others to reference                                                                               |
 | 11/03/26| 15 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Change the seniority/rank function, look at the form for preview, and start the writing guide                                                                     |
+| 11/17/26| 10 min   | Remote             | Vance, Nick, Yashas    | Discussed updates, checkpoints, and next steps | Have documentation and methedology, look into scheduling output for seniority                                                                                  |
 |         |          | In-person / Remote |                        |                                                |                                                                                                                                                                    |
 
 ---
@@ -397,6 +398,25 @@
 - [ ] [Change to manual rank] - [Everyone] - [Next advisor meeting]
 - [ ] [Google sheets preview] - [Everyone] - [Next advisor meeting]
 - [ ] [Start the guide implementation] - [Everyone] - [Next advisor meeting]
+
+---
+
+### [11/17/26] - [Advisor] Meeting
+
+**Attendees:**
+
+- Vance, Nick, Yashas
+
+**Discussion:**
+- Make the seniority ranking the schedule output
+- Documentation & Methodology of Schedulr
+
+**Decisions:**
+
+**Action Items:**
+
+- [ ] [Seniority Ranking the Schedule Output] - [Everyone] - [Next Advisor Meeting]
+- [ ] [Update the Tutorial/Guide on how to operate sheets for instructors] - [Everyone] - [Next Advisor Meeting]
 
 ---
 
