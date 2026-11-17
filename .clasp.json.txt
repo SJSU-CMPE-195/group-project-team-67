@@ -1,0 +1,4 @@
+{
+  "scriptId": "Paste Apps Script ID here",
+  "rootDir": "schedulr_apps_script"
+}
